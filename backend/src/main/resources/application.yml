@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: suricata-dashboard-backend
+  datasource:
+    # 환경변수로 주입 (없으면 아래 기본값). 비밀번호는 반드시 DB_PASSWORD 환경변수로.
+    url: jdbc:postgresql://${DB_HOST:100.111.79.100}:${DB_PORT:5432}/${DB_NAME:suricata_db}
+    username: ${DB_USER:dashboard_user}
+    password: ${DB_PASSWORD:}
+    hikari:
+      read-only: true          # 읽기 전용 — DB를 절대 변경하지 않음
+      maximum-pool-size: 5
+      connection-timeout: 10000
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false   # 시간은 ISO-8601 문자열로
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+
+app:
+  # 실제 테이블명이 'events'가 아니면 EVENTS_TABLE 환경변수로 바꾸세요.
+  events-table: ${EVENTS_TABLE:events}
+  # 프론트(Next.js) 주소. 콤마로 여러 개 가능.
+  cors-origins: ${CORS_ORIGINS:http://localhost:3000}

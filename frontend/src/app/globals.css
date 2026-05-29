@@ -1,0 +1,12 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { --accent: #7c5cff; }
+html, body { height: 100%; }
+body {
+  @apply bg-slate-100 text-slate-900 dark:bg-[#0a0b12] dark:text-slate-100;
+  font-family: 'Pretendard', system-ui, -apple-system, 'Segoe UI', 'Malgun Gothic', sans-serif;
+}
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-thumb { background: rgba(120,130,160,.35); border-radius: 8px; }

@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jsycure.dashboard.EventMapper">
+
+    <!--
+      실제 컬럼만 사용: id, timestamp, event_type, src_ip, src_port, dest_ip, dest_port, proto, payload_json
+      signature/severity/category/app_proto 는 payload_json(JSON)에서 추출 — 컬럼 추가 없음.
+      payload_json 은 ::jsonb 캐스팅으로 text/json/jsonb 어느 타입이든 안전 처리.
+      "timestamp" 는 예약어라 항상 큰따옴표로 인용.
+    -->
+
+    <resultMap id="eventRM" type="com.jsycure.dashboard.EventDto">
+        <constructor>
+            <idArg column="id"          javaType="java.lang.Long"/>
+            <arg    column="timestamp"  javaType="java.time.OffsetDateTime"/>
+            <arg    column="event_type" javaType="java.lang.String"/>
+            <arg    column="src_ip"     javaType="java.lang.String"/>
+            <arg    column="src_port"   javaType="java.lang.Integer"/>
+            <arg    column="dest_ip"    javaType="java.lang.String"/>
+            <arg    column="dest_port"  javaType="java.lang.Integer"/>
+            <arg    column="proto"      javaType="java.lang.String"/>
+            <arg    column="payload_json" javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="countRM" type="com.jsycure.dashboard.CountItem">
+        <constructor>
+            <arg column="k"   javaType="java.lang.String"/>
+            <arg column="cnt" javaType="_long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="timePointRM" type="com.jsycure.dashboard.TimePoint">
+        <constructor>
+            <arg column="bucket"     javaType="java.time.OffsetDateTime"/>
+            <arg column="event_type" javaType="java.lang.String"/>
+            <arg column="cnt"        javaType="_long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="talkerRM" type="com.jsycure.dashboard.TalkerDto">
+        <constructor>
+            <arg column="src_ip"  javaType="java.lang.String"/>
+            <arg column="dest_ip" javaType="java.lang.String"/>
+            <arg column="cnt"     javaType="_long"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="alertRM" type="com.jsycure.dashboard.AlertDto">
+        <constructor>
+            <idArg column="id"         javaType="java.lang.Long"/>
+            <arg    column="timestamp" javaType="java.time.OffsetDateTime"/>
+            <arg    column="src_ip"    javaType="java.lang.String"/>
+            <arg    column="src_port"  javaType="java.lang.Integer"/>
+            <arg    column="dest_ip"   javaType="java.lang.String"/>
+            <arg    column="dest_port" javaType="java.lang.Integer"/>
+            <arg    column="proto"     javaType="java.lang.String"/>
+            <arg    column="signature" javaType="java.lang.String"/>
+            <arg    column="severity"  javaType="java.lang.Integer"/>
+            <arg    column="category"  javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <!-- ⑥ 검색·필터 + 로그 테이블 -->
+    <select id="findEvents" resultMap="eventRM">
+        SELECT id, "timestamp", event_type,
+               src_ip::text  AS src_ip,  src_port,
+               dest_ip::text AS dest_ip, dest_port,
+               proto, payload_json::text AS payload_json
+        FROM ${t}
+        <where>
+            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
+            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
+            <if test="etype != null"> AND event_type = #{etype} </if>
+            <if test="ip != null"> AND (src_ip::text = #{ip} OR dest_ip::text = #{ip}) </if>
+            <if test="q != null"> AND (src_ip::text ILIKE ('%' || #{q} || '%')
+                                       OR dest_ip::text ILIKE ('%' || #{q} || '%')
+                                       OR payload_json::text ILIKE ('%' || #{q} || '%')) </if>
+        </where>
+        ORDER BY "timestamp" DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countEvents" resultType="long">
+        SELECT count(*) FROM ${t}
+        <where>
+            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
+            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
+            <if test="etype != null"> AND event_type = #{etype} </if>
+            <if test="ip != null"> AND (src_ip::text = #{ip} OR dest_ip::text = #{ip}) </if>
+            <if test="q != null"> AND (src_ip::text ILIKE ('%' || #{q} || '%')
+                                       OR dest_ip::text ILIKE ('%' || #{q} || '%')
+                                       OR payload_json::text ILIKE ('%' || #{q} || '%')) </if>
+        </where>
+    </select>
+
+    <!-- 개요(KPI) -->
+    <select id="total"        resultType="long">SELECT count(*) FROM ${t}</select>
+    <select id="alertCount"   resultType="long">SELECT count(*) FROM ${t} WHERE event_type = 'alert'</select>
+    <select id="distinctSrcIp" resultType="long">SELECT count(DISTINCT src_ip) FROM ${t}</select>
+
+    <select id="byEventType" resultMap="countRM">
+        SELECT event_type AS k, count(*) AS cnt
+        FROM ${t} GROUP BY event_type ORDER BY cnt DESC
+    </select>
+
+    <select id="bySeverity" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'severity' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type = 'alert' AND (payload_json::jsonb)->'alert'->>'severity' IS NOT NULL
+        GROUP BY k ORDER BY k
+    </select>
+
+    <!-- ④ 시계열 이벤트 추이 (iv = minute|hour|day, 서비스에서 검증) -->
+    <select id="timeseries" resultMap="timePointRM">
+        SELECT date_trunc('${iv}', "timestamp") AS bucket, event_type, count(*) AS cnt
+        FROM ${t}
+        <where>
+            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
+            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
+            <if test="etype != null"> AND event_type = #{etype} </if>
+        </where>
+        GROUP BY bucket, event_type
+        ORDER BY bucket
+    </select>
+
+    <!-- ② 트래픽·프로토콜 통계 (TCP·HTTP·DNS·TLS …) -->
+    <select id="protocols" resultMap="countRM">
+        SELECT COALESCE((payload_json::jsonb)->>'app_proto', lower(proto), 'unknown') AS k, count(*) AS cnt
+        FROM ${t} GROUP BY k ORDER BY cnt DESC
+    </select>
+
+    <!-- ③ Top Talkers -->
+    <select id="topTalkersPair" resultMap="talkerRM">
+        SELECT src_ip::text AS src_ip, dest_ip::text AS dest_ip, count(*) AS cnt
+        FROM ${t} GROUP BY src_ip, dest_ip ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="topTalkersSrc" resultMap="talkerRM">
+        SELECT src_ip::text AS src_ip, NULL::text AS dest_ip, count(*) AS cnt
+        FROM ${t} GROUP BY src_ip ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="topTalkersDest" resultMap="talkerRM">
+        SELECT NULL::text AS src_ip, dest_ip::text AS dest_ip, count(*) AS cnt
+        FROM ${t} GROUP BY dest_ip ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+
+    <!-- ⑤ 시그니처별 집계 -->
+    <select id="signatures" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'signature' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type = 'alert' AND (payload_json::jsonb)->'alert'->>'signature' IS NOT NULL
+        GROUP BY k ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+
+    <!-- ① Alert 모니터링 (최근 경보) -->
+    <select id="recentAlerts" resultMap="alertRM">
+        SELECT id, "timestamp",
+               src_ip::text  AS src_ip,  src_port,
+               dest_ip::text AS dest_ip, dest_port, proto,
+               (payload_json::jsonb)->'alert'->>'signature'       AS signature,
+               ((payload_json::jsonb)->'alert'->>'severity')::int AS severity,
+               (payload_json::jsonb)->'alert'->>'category'        AS category
+        FROM ${t}
+        WHERE event_type = 'alert'
+        ORDER BY "timestamp" DESC
+        LIMIT #{limit}
+    </select>
+
+</mapper>
