@@ -13,7 +13,7 @@
     <resultMap id="eventRM" type="com.jsycure.dashboard.EventDto">
         <constructor>
             <idArg column="id"          javaType="java.lang.Long"/>
-            <arg    column="timestamp"  javaType="java.time.OffsetDateTime"/>
+            <arg    column="timestamp"  javaType="java.lang.String"/>
             <arg    column="event_type" javaType="java.lang.String"/>
             <arg    column="src_ip"     javaType="java.lang.String"/>
             <arg    column="src_port"   javaType="java.lang.Integer"/>
@@ -50,7 +50,7 @@
     <resultMap id="alertRM" type="com.jsycure.dashboard.AlertDto">
         <constructor>
             <idArg column="id"         javaType="java.lang.Long"/>
-            <arg    column="timestamp" javaType="java.time.OffsetDateTime"/>
+            <arg    column="timestamp" javaType="java.lang.String"/>
             <arg    column="src_ip"    javaType="java.lang.String"/>
             <arg    column="src_port"  javaType="java.lang.Integer"/>
             <arg    column="dest_ip"   javaType="java.lang.String"/>
@@ -114,7 +114,7 @@
 
     <!-- ④ 시계열 이벤트 추이 (iv = minute|hour|day, 서비스에서 검증) -->
     <select id="timeseries" resultMap="timePointRM">
-        SELECT date_trunc('${iv}', "timestamp") AS bucket, event_type, count(*) AS cnt
+        SELECT date_trunc('${iv}', "timestamp"::timestamptz) AS bucket, event_type, count(*) AS cnt
         FROM ${t}
         <where>
             <if test="from != null"> AND "timestamp" &gt;= #{from} </if>

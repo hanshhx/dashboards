@@ -11,7 +11,7 @@ import java.util.List;
 /** events 테이블 1행 — 실제 컬럼 그대로 */
 record EventDto(
         Long id,
-        OffsetDateTime timestamp,
+        String timestamp,   // DB가 text(ISO 문자열)로 저장 — 그대로 전달, 프론트에서 Date 파싱
         String eventType,
         String srcIp,
         Integer srcPort,
@@ -36,7 +36,7 @@ record TalkerDto(String srcIp, String destIp, long count) {}
 /** Alert 모니터링용 경보 1건 (payload_json에서 signature/severity/category 추출) */
 record AlertDto(
         Long id,
-        OffsetDateTime timestamp,
+        String timestamp,   // DB가 text(ISO 문자열)로 저장 — 그대로 전달, 프론트에서 Date 파싱
         String srcIp,
         Integer srcPort,
         String destIp,
