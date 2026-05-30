@@ -27,3 +27,6 @@ app:
   events-table: ${EVENTS_TABLE:events}
   # 프론트(Next.js) 주소. 콤마로 여러 개 가능.
   cors-origins: ${CORS_ORIGINS:http://localhost:3000}
+  # API 키. 비어 있으면 인증 비활성(개발). 공개 배포 시 긴 랜덤값 권장.
+  # /api/health 는 키 없이도 항상 허용.
+  api-key: ${API_KEY:}
