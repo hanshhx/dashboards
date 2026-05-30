@@ -1,7 +1,7 @@
 'use client';
 
 import { Shell } from '@/components/Shell';
-import { Card, Kpi, Skeleton, Badge, SEV_COLOR, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
+import { Card, Kpi, Skeleton, Badge, SEV_COLOR, SEV_LABEL, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { TimeSeries, Donut, BarRank } from '@/components/charts';
 import {
   useOverview, useTimeseries, useProtocols, useTalkers, useSignatures, useRecentAlerts,
@@ -80,12 +80,11 @@ export default function OverviewPage() {
               {alerts.data.map((a) => {
                 const c = SEV_COLOR[String(a.severity ?? '')] ?? '#64748b';
                 return (
-                  <li key={a.id} className="flex items-start gap-3">
-                    <span className="mt-1 w-2 h-2 rounded-full shrink-0" style={{ background: c }} />
+                  <li key={a.id} className="flex items-start gap-3 rounded-lg border-l-4 bg-slate-50 dark:bg-white/[.04] pl-3 pr-2 py-2" style={{ borderColor: c }}>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-medium truncate">{a.signature ?? '(시그니처 없음)'}</span>
-                        {a.severity != null && <Badge text={`sev ${a.severity}`} color={c} />}
+                        {a.severity != null && <Badge text={SEV_LABEL[String(a.severity)] ?? `sev ${a.severity}`} color={c} />}
                       </div>
                       <div className="text-xs text-slate-500 truncate font-mono">
                         {a.srcIp}:{a.srcPort} → {a.destIp}:{a.destPort}

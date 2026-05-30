@@ -3,9 +3,8 @@
 import { useState } from 'react';
 import { Shell } from '@/components/Shell';
 import { Badge, ETYPE_COLOR, fmtTime } from '@/components/ui';
-import { useEvents } from '@/lib/api';
+import { useEvents, useOverview } from '@/lib/api';
 
-const ETYPES = ['', 'alert', 'dns', 'http', 'tls', 'flow', 'fileinfo'];
 const SIZE = 50;
 
 export default function EventsPage() {
@@ -13,6 +12,10 @@ export default function EventsPage() {
   const [ip, setIp] = useState('');
   const [eventType, setEventType] = useState('');
   const [page, setPage] = useState(0);
+
+  const ov = useOverview();
+  // 실제 데이터에 존재하는 event_type만 노출 (없는 유형으로 "데이터 없음" 뜨는 것 방지)
+  const etypes = ['', ...((ov.data?.byEventType ?? []).map((c) => c.key).filter(Boolean) as string[])];
 
   const { data, isLoading, isError } = useEvents({
     q: q || undefined, ip: ip || undefined, eventType: eventType || undefined, page, size: SIZE,
@@ -25,12 +28,14 @@ export default function EventsPage() {
       {/* ⑥ 검색·필터 */}
       <div className="rounded-2xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
         <input value={q} onChange={(e) => { setQ(e.target.value); setPage(0); }}
-          placeholder="IP · 시그니처 검색" className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 outline-none text-sm" />
+          placeholder="IP · 시그니처 검색"
+          className="flex-1 min-w-[200px] px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-300 dark:border-white/15 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 outline-none text-sm" />
         <input value={ip} onChange={(e) => { setIp(e.target.value); setPage(0); }}
-          placeholder="IP 정확히 일치" className="w-44 px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 outline-none text-sm" />
+          placeholder="IP 정확히 일치"
+          className="w-44 px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-300 dark:border-white/15 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 outline-none text-sm" />
         <select value={eventType} onChange={(e) => { setEventType(e.target.value); setPage(0); }}
-          className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 text-sm outline-none">
-          {ETYPES.map((t) => <option key={t} value={t}>{t || 'event_type 전체'}</option>)}
+          className="px-3 py-2 rounded-lg bg-white dark:bg-[#1c1d2a] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-white/15 focus:border-violet-500 outline-none text-sm">
+          {etypes.map((t) => <option key={t} value={t} className="bg-white dark:bg-[#1c1d2a]">{t || 'event_type 전체'}</option>)}
         </select>
         <span className="text-xs text-slate-400">{total.toLocaleString()} 건</span>
       </div>

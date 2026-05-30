@@ -41,6 +41,10 @@ export function Badge({ text, color }: { text: string; color: string }) {
 export const SEV_COLOR: Record<string, string> = {
   '1': '#ef4444', '2': '#f97316', '3': '#eab308', '4': '#3b82f6',
 };
+// Suricata severity: 1=가장 심각
+export const SEV_LABEL: Record<string, string> = {
+  '1': '높음', '2': '중간', '3': '낮음', '4': '정보',
+};
 export const ETYPE_COLOR: Record<string, string> = {
   alert: '#ef4444', http: '#5b8cff', dns: '#22c55e', tls: '#a855f7',
   flow: '#64748b', fileinfo: '#06b6d4', stats: '#94a3b8', tcp: '#5b8cff', udp: '#22c55e',

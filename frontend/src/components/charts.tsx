@@ -75,14 +75,21 @@ export function Donut({ data, colors }: { data: CountItem[]; colors?: Record<str
 /** ⑤ 시그니처별 집계 — 가로 막대 */
 export function BarRank({ data, color = '#f97316' }: { data: CountItem[]; color?: string }) {
   const { grid, tick, tooltipBg } = useAxis();
+  // 항목 수에 맞춰 높이를 늘려 라벨이 겹치지 않게
+  const height = Math.max(220, data.length * 42 + 20);
+  const trunc = (s: string | null) => {
+    const v = s ?? '(없음)';
+    return v.length > 34 ? v.slice(0, 33) + '…' : v;
+  };
   return (
-    <ResponsiveContainer width="100%" height={288}>
-      <BarChart data={data} layout="vertical" margin={{ left: 8, right: 16, top: 4, bottom: 4 }}>
+    <ResponsiveContainer width="100%" height={height}>
+      <BarChart data={data} layout="vertical" margin={{ left: 8, right: 24, top: 4, bottom: 4 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={grid} horizontal={false} />
-        <XAxis type="number" tick={{ fill: tick, fontSize: 11 }} />
-        <YAxis type="category" dataKey="key" width={150} tick={{ fill: tick, fontSize: 11 }} />
+        <XAxis type="number" allowDecimals={false} tick={{ fill: tick, fontSize: 11 }} />
+        <YAxis type="category" dataKey="key" width={230} interval={0}
+               tick={{ fill: tick, fontSize: 11 }} tickFormatter={trunc} />
         <Tooltip contentStyle={{ background: tooltipBg, border: `1px solid ${grid}`, borderRadius: 8, fontSize: 12 }} cursor={{ fill: 'transparent' }} />
-        <Bar dataKey="count" fill={color} radius={[0, 6, 6, 0]} />
+        <Bar dataKey="count" fill={color} radius={[0, 6, 6, 0]} barSize={18} />
       </BarChart>
     </ResponsiveContainer>
   );
