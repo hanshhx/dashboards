@@ -50,6 +50,10 @@ public class UserRepository {
         return jdbc.update("UPDATE app_user SET role = ? WHERE id = ?", role, id);
     }
 
+    public int updatePassword(long id, String passwordHash) {
+        return jdbc.update("UPDATE app_user SET password = ? WHERE id = ?", passwordHash, id);
+    }
+
     public int delete(long id) {
         return jdbc.update("DELETE FROM app_user WHERE id = ?", id);
     }

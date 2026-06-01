@@ -4,13 +4,16 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, ReactNode } from 'react';
-import { LayoutDashboard, ListFilter, Users, Moon, Sun, ShieldCheck, LogOut, Lock } from 'lucide-react';
+import { LayoutDashboard, ListFilter, Users, Moon, Sun, ShieldCheck, LogOut, Lock, Crosshair, Fingerprint, ScrollText } from 'lucide-react';
 import { useAuth, hasRole, ROLE_LABEL, type Role } from '@/lib/auth';
 
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard; min: Role }[] = [
   { href: '/', label: '개요', icon: LayoutDashboard, min: 'GENERAL' },
   { href: '/events', label: '로그 탐색', icon: ListFilter, min: 'STAFF' },
+  { href: '/analysis/ip', label: 'IP 분석', icon: Crosshair, min: 'STAFF' },
+  { href: '/analysis/signature', label: '시그니처 분석', icon: Fingerprint, min: 'STAFF' },
   { href: '/admin/users', label: '회원 관리', icon: Users, min: 'ADMIN' },
+  { href: '/admin/audit', label: '감사 로그', icon: ScrollText, min: 'ADMIN' },
 ];
 
 function FullScreen({ children }: { children: ReactNode }) {
@@ -77,10 +80,11 @@ export function Shell({
         <header className="h-16 shrink-0 flex items-center gap-3 px-4 md:px-6 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#10111a]/80 backdrop-blur sticky top-0 z-20">
           <h1 className="text-lg font-semibold">{title}</h1>
           <div className="ml-auto flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5">
+            <Link href="/profile" title="프로필 / 설정"
+              className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10">
               <span className="text-sm font-medium">{user.username}</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-500 font-semibold">{ROLE_LABEL[user.role]}</span>
-            </div>
+            </Link>
             <ThemeToggle />
             <button onClick={() => { logout(); router.replace('/login'); }} title="로그아웃"
               className="w-9 h-9 grid place-items-center rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-red-500/10 hover:text-red-500">

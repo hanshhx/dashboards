@@ -64,6 +64,19 @@ public class UserService {
         repo.delete(id);
     }
 
+    /** 본인 비밀번호 변경 (현재 비번 확인 후) */
+    public void changePassword(String username, String current, String next) {
+        AppUser u = repo.findByUsername(username)
+                .orElseThrow(() -> new BadCredentialsException("사용자를 찾을 수 없습니다."));
+        if (!encoder.matches(current == null ? "" : current, u.password())) {
+            throw new BadCredentialsException("현재 비밀번호가 올바르지 않습니다.");
+        }
+        if (next == null || next.length() < 8) {
+            throw new IllegalArgumentException("새 비밀번호는 8자 이상이어야 합니다.");
+        }
+        repo.updatePassword(u.id(), encoder.encode(next));
+    }
+
     private void validate(String username, String password) {
         if (username == null || !username.matches("[A-Za-z0-9_]{3,20}")) {
             throw new IllegalArgumentException("아이디는 영문/숫자/_ 3~20자여야 합니다.");

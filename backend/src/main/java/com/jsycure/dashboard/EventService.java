@@ -118,4 +118,19 @@ public class EventService {
                                        String eventType, String ip, String q) {
         return mapper.findEvents(table, from, to, eventType, ip, q, 50000, 0);
     }
+
+    /** IP 공격자 프로파일 (드릴다운) */
+    public IpProfileDto ipProfile(String ip) {
+        return new IpProfileDto(ip,
+                mapper.ipCount(table, ip), mapper.ipAsSrc(table, ip), mapper.ipAsDest(table, ip),
+                mapper.ipSeverity(table, ip), mapper.ipSignatures(table, ip, 10),
+                mapper.ipPorts(table, ip, 10), mapper.ipTimeline(table, ip));
+    }
+
+    /** 시그니처(탐지 룰) 프로파일 (드릴다운) */
+    public SignatureProfileDto signatureProfile(String sig) {
+        return new SignatureProfileDto(sig,
+                mapper.sigCount(table, sig), mapper.sigSeverity(table, sig),
+                mapper.sigTopSrc(table, sig, 10), mapper.sigPorts(table, sig, 10), mapper.sigTimeline(table, sig));
+    }
 }

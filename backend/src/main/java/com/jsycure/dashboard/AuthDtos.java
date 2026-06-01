@@ -22,3 +22,6 @@ record AppUser(Long id, String username, String password, String role, boolean e
 
 /** 회원관리 목록 1행 (password 제외) */
 record UserRow(Long id, String username, String role, boolean enabled, String createdAt) {}
+
+/** 비밀번호 변경 요청 (프로필) */
+record ChangePasswordReq(String currentPassword, String newPassword) {}

@@ -94,3 +94,22 @@ export function BarRank({ data, color = '#f97316' }: { data: CountItem[]; color?
     </ResponsiveContainer>
   );
 }
+
+/** 컴팩트 가로 막대 리스트 (스크롤) — 드릴다운/요약용 */
+export function MiniBars({ data, color = '#7c5cff', maxH = 240 }: { data: CountItem[]; color?: string; maxH?: number }) {
+  if (!data.length) return <div className="py-6 text-center text-sm text-slate-400">데이터 없음</div>;
+  const max = Math.max(...data.map((d) => d.count), 1);
+  return (
+    <div className="space-y-1.5 overflow-y-auto pr-1" style={{ maxHeight: maxH }}>
+      {data.map((d, i) => (
+        <div key={i} className="flex items-center gap-2 text-xs">
+          <span className="w-32 shrink-0 truncate text-slate-500" title={d.key ?? ''}>{d.key ?? '—'}</span>
+          <div className="flex-1 h-3.5 rounded bg-slate-100 dark:bg-white/5 overflow-hidden">
+            <div className="h-full rounded" style={{ width: `${(d.count / max) * 100}%`, background: color }} />
+          </div>
+          <span className="w-14 shrink-0 text-right font-medium tabular-nums">{d.count.toLocaleString()}</span>
+        </div>
+      ))}
+    </div>
+  );
+}

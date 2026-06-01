@@ -70,4 +70,20 @@ public interface EventMapper {
 
     List<AlertDto> recentAlerts(@Param("t") String t, @Param("limit") int limit,
                                 @Param("sort") String sort, @Param("severity") Integer severity);
+
+    // IP 프로파일
+    long ipCount(@Param("t") String t, @Param("ip") String ip);
+    long ipAsSrc(@Param("t") String t, @Param("ip") String ip);
+    long ipAsDest(@Param("t") String t, @Param("ip") String ip);
+    List<CountItem> ipSeverity(@Param("t") String t, @Param("ip") String ip);
+    List<CountItem> ipSignatures(@Param("t") String t, @Param("ip") String ip, @Param("limit") int limit);
+    List<CountItem> ipPorts(@Param("t") String t, @Param("ip") String ip, @Param("limit") int limit);
+    List<CountItem> ipTimeline(@Param("t") String t, @Param("ip") String ip);
+
+    // 시그니처 프로파일
+    long sigCount(@Param("t") String t, @Param("sig") String sig);
+    List<CountItem> sigSeverity(@Param("t") String t, @Param("sig") String sig);
+    List<CountItem> sigTopSrc(@Param("t") String t, @Param("sig") String sig, @Param("limit") int limit);
+    List<CountItem> sigPorts(@Param("t") String t, @Param("sig") String sig, @Param("limit") int limit);
+    List<CountItem> sigTimeline(@Param("t") String t, @Param("sig") String sig);
 }

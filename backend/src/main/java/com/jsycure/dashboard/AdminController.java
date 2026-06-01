@@ -1,19 +1,22 @@
 package com.jsycure.dashboard;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
-/** 회원 관리 (ADMIN 전용 — SecurityConfig에서 /api/admin/** 강제). */
+/** 회원 관리 + 감사 로그 (ADMIN 전용 — SecurityConfig에서 /api/admin/** 강제). */
 @RestController
 @RequestMapping("/api/admin")
 public class AdminController {
 
     private final UserService users;
+    private final AuditService audit;
 
-    public AdminController(UserService users) {
+    public AdminController(UserService users, AuditService audit) {
         this.users = users;
+        this.audit = audit;
     }
 
     @GetMapping("/users")
@@ -24,14 +27,22 @@ public class AdminController {
     }
 
     @PatchMapping("/users/{id}/role")
-    public Map<String, Object> changeRole(@PathVariable long id, @RequestBody Map<String, String> body) {
+    public Map<String, Object> changeRole(Authentication auth, @PathVariable long id, @RequestBody Map<String, String> body) {
         users.changeRole(id, body.get("role"));
+        audit.record(auth.getName(), "ROLE_CHANGE", "user#" + id + " -> " + body.get("role"));
         return Map.of("ok", true);
     }
 
     @DeleteMapping("/users/{id}")
-    public Map<String, Object> remove(@PathVariable long id) {
+    public Map<String, Object> remove(Authentication auth, @PathVariable long id) {
         users.delete(id);
+        audit.record(auth.getName(), "USER_DELETE", "user#" + id);
         return Map.of("ok", true);
+    }
+
+    /** 감사 로그 조회 */
+    @GetMapping("/audit")
+    public List<AuditEntry> auditLog(@RequestParam(defaultValue = "100") int limit) {
+        return audit.recent(Math.min(Math.max(limit, 1), 500));
     }
 }

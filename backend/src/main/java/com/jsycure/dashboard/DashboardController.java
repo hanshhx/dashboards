@@ -4,6 +4,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
@@ -26,9 +27,11 @@ import java.util.Map;
 public class DashboardController {
 
     private final EventService service;
+    private final AuditService audit;
 
-    public DashboardController(EventService service) {
+    public DashboardController(EventService service, AuditService audit) {
         this.service = service;
+        this.audit = audit;
     }
 
     @GetMapping("/health")
@@ -51,7 +54,8 @@ public class DashboardController {
 
     /** payload 상세 (모달/다운로드) — 목록엔 payload를 안 내보내고 여기서 단건 조회 */
     @GetMapping("/events/{id}/payload")
-    public EventPayloadDto eventPayload(@PathVariable long id) {
+    public EventPayloadDto eventPayload(Authentication auth, @PathVariable long id) {
+        audit.record(auth.getName(), "PAYLOAD_VIEW", "event#" + id);
         return service.eventPayload(id);
     }
 

@@ -210,4 +210,69 @@
         LIMIT #{limit}
     </select>
 
+    <!-- ===== IP 공격자 프로파일 (src_ip 또는 dest_ip = ip) ===== -->
+    <select id="ipCount"  resultType="long">SELECT count(*) FROM ${t} WHERE (src_ip::text = #{ip} OR dest_ip::text = #{ip})</select>
+    <select id="ipAsSrc"  resultType="long">SELECT count(*) FROM ${t} WHERE src_ip::text = #{ip}</select>
+    <select id="ipAsDest" resultType="long">SELECT count(*) FROM ${t} WHERE dest_ip::text = #{ip}</select>
+
+    <select id="ipSeverity" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'severity' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (src_ip::text = #{ip} OR dest_ip::text = #{ip})
+          AND (payload_json::jsonb)->'alert'->>'severity' IS NOT NULL
+        GROUP BY k ORDER BY k
+    </select>
+    <select id="ipSignatures" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'signature' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (src_ip::text = #{ip} OR dest_ip::text = #{ip})
+          AND (payload_json::jsonb)->'alert'->>'signature' IS NOT NULL
+        GROUP BY k ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="ipPorts" resultMap="countRM">
+        SELECT dest_port::text AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE (src_ip::text = #{ip} OR dest_ip::text = #{ip}) AND dest_port IS NOT NULL
+        GROUP BY dest_port ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="ipTimeline" resultMap="countRM">
+        SELECT to_char(date_trunc('hour', "timestamp"::timestamptz), 'YYYY-MM-DD HH24:MI') AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE (src_ip::text = #{ip} OR dest_ip::text = #{ip})
+        GROUP BY date_trunc('hour', "timestamp"::timestamptz)
+        ORDER BY date_trunc('hour', "timestamp"::timestamptz)
+    </select>
+
+    <!-- ===== 시그니처(탐지 룰) 프로파일 ===== -->
+    <select id="sigCount" resultType="long">
+        SELECT count(*) FROM ${t}
+        WHERE event_type='alert' AND (payload_json::jsonb)->'alert'->>'signature' = #{sig}
+    </select>
+    <select id="sigSeverity" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'severity' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (payload_json::jsonb)->'alert'->>'signature' = #{sig}
+          AND (payload_json::jsonb)->'alert'->>'severity' IS NOT NULL
+        GROUP BY k ORDER BY k
+    </select>
+    <select id="sigTopSrc" resultMap="countRM">
+        SELECT src_ip::text AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (payload_json::jsonb)->'alert'->>'signature' = #{sig}
+        GROUP BY src_ip ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="sigPorts" resultMap="countRM">
+        SELECT dest_port::text AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (payload_json::jsonb)->'alert'->>'signature' = #{sig} AND dest_port IS NOT NULL
+        GROUP BY dest_port ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+    <select id="sigTimeline" resultMap="countRM">
+        SELECT to_char(date_trunc('hour', "timestamp"::timestamptz), 'YYYY-MM-DD HH24:MI') AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type='alert' AND (payload_json::jsonb)->'alert'->>'signature' = #{sig}
+        GROUP BY date_trunc('hour', "timestamp"::timestamptz)
+        ORDER BY date_trunc('hour', "timestamp"::timestamptz)
+    </select>
+
 </mapper>

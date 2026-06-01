@@ -162,3 +162,32 @@ export type AdminUser = {
 };
 export const useUsers = (enabled = true) =>
   useQuery({ queryKey: ['admin-users'], enabled, queryFn: () => get<AdminUser[]>('/admin/users') });
+
+// ── IP / 시그니처 드릴다운 분석 (관계자+) ──
+export type IpProfile = {
+  ip: string; total: number; asSrc: number; asDest: number;
+  bySeverity: CountItem[]; topSignatures: CountItem[]; topPorts: CountItem[]; timeline: CountItem[];
+};
+export type SignatureProfile = {
+  signature: string; total: number;
+  bySeverity: CountItem[]; topSrcIps: CountItem[]; topPorts: CountItem[]; timeline: CountItem[];
+};
+
+export const useIpProfile = (ip: string | null) =>
+  useQuery({
+    queryKey: ['ip-profile', ip],
+    enabled: !!ip,
+    queryFn: () => get<IpProfile>(`/analysis/ip?ip=${encodeURIComponent(ip!)}`),
+  });
+
+export const useSignatureProfile = (sig: string | null) =>
+  useQuery({
+    queryKey: ['sig-profile', sig],
+    enabled: !!sig,
+    queryFn: () => get<SignatureProfile>(`/analysis/signature?sig=${encodeURIComponent(sig!)}`),
+  });
+
+// ── 감사 로그 (관리자) ──
+export type AuditEntry = { id: number; at: string; username: string; action: string; detail: string };
+export const useAudit = (limit = 100, enabled = true) =>
+  useQuery({ queryKey: ['audit', limit], enabled, queryFn: () => get<AuditEntry[]>(`/admin/audit?limit=${limit}`) });
