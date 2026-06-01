@@ -25,13 +25,6 @@
         </constructor>
     </resultMap>
 
-    <resultMap id="payloadRM" type="com.jsycure.dashboard.EventPayloadDto">
-        <constructor>
-            <idArg column="id"           javaType="java.lang.Long"/>
-            <arg    column="payload_json" javaType="java.lang.String"/>
-        </constructor>
-    </resultMap>
-
     <resultMap id="countRM" type="com.jsycure.dashboard.CountItem">
         <constructor>
             <arg column="k"   javaType="java.lang.String"/>
@@ -100,10 +93,10 @@
         <include refid="eventFilter"/>
     </select>
 
-    <!-- payload 단건 (상세 모달 / JSON·CSV 다운로드) -->
-    <select id="findPayloadById" resultMap="payloadRM">
-        SELECT id, payload_json::text AS payload_json
-        FROM ${t} WHERE id = #{id}
+    <!-- payload 단건 (상세 모달 / JSON·CSV 다운로드).
+         id 컬럼 타입(text/숫자) 무관하게 ::text 비교 + 단순 String 매핑 + LIMIT 1 로 안전하게. -->
+    <select id="findPayloadById" resultType="java.lang.String">
+        SELECT payload_json::text FROM ${t} WHERE id::text = #{id} LIMIT 1
     </select>
 
     <!-- 로그탐색 요약 ① 시각별 로그 개수 (iv = minute|hour|day, 서비스 검증) -->

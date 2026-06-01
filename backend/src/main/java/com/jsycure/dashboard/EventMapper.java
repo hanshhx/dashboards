@@ -30,8 +30,8 @@ public interface EventMapper {
                      @Param("ip") String ip,
                      @Param("q") String q);
 
-    /** payload 단건 (상세 모달 / 다운로드) */
-    EventPayloadDto findPayloadById(@Param("t") String t, @Param("id") long id);
+    /** payload 단건 (상세 모달 / 다운로드) — id는 text 비교라 String으로 전달, payload_json 텍스트 반환 */
+    String findPayloadById(@Param("t") String t, @Param("id") String id);
 
     /** 로그탐색 요약 ① 시각별 로그 개수 (필터 반영) */
     List<CountItem> eventsHistogram(@Param("t") String t, @Param("iv") String iv,

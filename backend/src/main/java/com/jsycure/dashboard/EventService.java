@@ -37,7 +37,7 @@ public class EventService {
 
     /** payload 단건 (상세/다운로드) */
     public EventPayloadDto eventPayload(long id) {
-        return mapper.findPayloadById(table, id);
+        return new EventPayloadDto(id, mapper.findPayloadById(table, String.valueOf(id)));
     }
 
     /** 로그탐색 요약 ① 시각별 로그 개수 (interval 화이트리스트) */
