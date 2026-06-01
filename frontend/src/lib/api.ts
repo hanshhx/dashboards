@@ -69,10 +69,25 @@ export const useSignatures = (limit = 10, enabled = true) =>
     queryFn: () => get<CountItem[]>(`/stats/signatures?limit=${limit}`),
   });
 
-export const useRecentAlerts = (limit = 12) =>
-  useQuery({ queryKey: ['alerts', limit], queryFn: () => get<Alert[]>(`/alerts/recent?limit=${limit}`) });
+// 공격 분류 / 대상 포트 (관계자+)
+export const useCategories = (limit = 8, enabled = true) =>
+  useQuery({ queryKey: ['categories', limit], enabled, queryFn: () => get<CountItem[]>(`/stats/categories?limit=${limit}`) });
 
-export type EventFilter = { eventType?: string; ip?: string; q?: string; page: number; size: number };
+export const useTopPorts = (limit = 8, enabled = true) =>
+  useQuery({ queryKey: ['topports', limit], enabled, queryFn: () => get<CountItem[]>(`/stats/top-ports?limit=${limit}`) });
+
+// Alert 모니터링 — sort: recent|severity, severity 필터(1=높음·2=중간·3=낮음)
+export const useRecentAlerts = (limit = 12, sort: 'recent' | 'severity' = 'recent', severity?: number) =>
+  useQuery({
+    queryKey: ['alerts', limit, sort, severity ?? null],
+    queryFn: () => {
+      const sp = new URLSearchParams({ limit: String(limit), sort });
+      if (severity != null) sp.set('severity', String(severity));
+      return get<Alert[]>(`/alerts/recent?${sp.toString()}`);
+    },
+  });
+
+export type EventFilter = { eventType?: string; ip?: string; q?: string; from?: string; to?: string; page: number; size: number };
 
 export const useEvents = (f: EventFilter) =>
   useQuery({
@@ -83,6 +98,8 @@ export const useEvents = (f: EventFilter) =>
       if (f.eventType) sp.set('eventType', f.eventType);
       if (f.ip) sp.set('ip', f.ip);
       if (f.q) sp.set('q', f.q);
+      if (f.from) sp.set('from', f.from);
+      if (f.to) sp.set('to', f.to);
       sp.set('page', String(f.page));
       sp.set('size', String(f.size));
       return get<Page<EventRow>>(`/events?${sp.toString()}`);
@@ -90,14 +107,21 @@ export const useEvents = (f: EventFilter) =>
   });
 
 // ── 로그탐색 요약 (현재 필터 반영) ──
-export type SummaryFilter = { eventType?: string; ip?: string; q?: string };
+export type SummaryFilter = { eventType?: string; ip?: string; q?: string; from?: string; to?: string };
 
 function summaryQS(f: SummaryFilter) {
   const sp = new URLSearchParams();
   if (f.eventType) sp.set('eventType', f.eventType);
   if (f.ip) sp.set('ip', f.ip);
   if (f.q) sp.set('q', f.q);
+  if (f.from) sp.set('from', f.from);
+  if (f.to) sp.set('to', f.to);
   return sp;
+}
+
+/** 필터된 로그 일괄 내보내기 (payload 제외, 최대 5만건) */
+export async function fetchEventsExport(f: SummaryFilter): Promise<EventRow[]> {
+  return get<EventRow[]>(`/events/export?${summaryQS(f).toString()}`);
 }
 
 export const useEventsHistogram = (f: SummaryFilter, interval = 'hour') =>

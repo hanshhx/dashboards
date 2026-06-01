@@ -1,15 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Search, FileSearch } from 'lucide-react';
+import { ChevronDown, ChevronUp, Search, FileSearch, Download } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { Card, Skeleton, Badge, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { PayloadModal } from '@/components/PayloadModal';
-import { useEvents, useOverview, useEventsHistogram, useEventsTopSrc } from '@/lib/api';
+import { useEvents, useOverview, useEventsHistogram, useEventsTopSrc, fetchEventsExport } from '@/lib/api';
 import { useAuth, hasRole } from '@/lib/auth';
-import type { CountItem } from '@/lib/types';
+import type { CountItem, EventRow } from '@/lib/types';
 
 const SIZE = 50;
+
+function downloadBlob(filename: string, content: string, mime: string) {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
 
 /** 시각별 로그 개수 — 가로 막대 (스크롤) */
 function HistBars({ data }: { data: CountItem[] }) {
@@ -58,6 +70,9 @@ export default function EventsPage() {
   const [page, setPage] = useState(0);
   const [showAll, setShowAll] = useState(false);          // 전체보기 토글
   const [payloadId, setPayloadId] = useState<number | null>(null); // payload 모달
+  const [from, setFrom] = useState('');
+  const [to, setTo] = useState('');
+  const [exporting, setExporting] = useState(false);
 
   const { user } = useAuth();
   const admin = hasRole(user, 'ADMIN'); // payload 상세/다운로드는 관리자만
@@ -65,7 +80,31 @@ export default function EventsPage() {
   const ov = useOverview();
   const etypes = ['', ...((ov.data?.byEventType ?? []).map((c) => c.key).filter(Boolean) as string[])];
 
-  const filter = { eventType: eventType || undefined, ip: ip || undefined, q: q || undefined };
+  const toISO = (v: string) => (v ? new Date(v).toISOString() : undefined);
+  const filter = {
+    eventType: eventType || undefined, ip: ip || undefined, q: q || undefined,
+    from: toISO(from), to: toISO(to),
+  };
+
+  async function exportLogs(format: 'csv' | 'json') {
+    setExporting(true);
+    try {
+      const rows = await fetchEventsExport(filter);
+      const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+      if (format === 'json') {
+        downloadBlob(`logs-${stamp}.json`, JSON.stringify(rows, null, 2), 'application/json');
+      } else {
+        const cols: (keyof EventRow)[] = ['id', 'timestamp', 'eventType', 'srcIp', 'srcPort', 'destIp', 'destPort', 'proto', 'signature'];
+        const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
+        const csv = [cols.join(','), ...rows.map((r) => cols.map((c) => esc(r[c])).join(','))].join('\r\n');
+        downloadBlob(`logs-${stamp}.csv`, '﻿' + csv, 'text/csv;charset=utf-8');
+      }
+    } catch (e) {
+      alert('내보내기 실패: ' + (e instanceof Error ? e.message : ''));
+    } finally {
+      setExporting(false);
+    }
+  }
   const hist = useEventsHistogram(filter, 'hour');
   const topSrc = useEventsTopSrc(filter, 10);
 
@@ -93,7 +132,23 @@ export default function EventsPage() {
           className="px-3 py-2 rounded-lg bg-white dark:bg-[#1c1d2a] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-white/15 focus:border-violet-500 outline-none text-sm">
           {etypes.map((t) => <option key={t} value={t} className="bg-white dark:bg-[#1c1d2a]">{t || 'event_type 전체'}</option>)}
         </select>
+        <input type="datetime-local" value={from} onChange={(e) => { setFrom(e.target.value); reset(); }}
+          title="시작 시각" className={`${inputCls} w-[190px]`} />
+        <span className="text-slate-400 text-xs">~</span>
+        <input type="datetime-local" value={to} onChange={(e) => { setTo(e.target.value); reset(); }}
+          title="종료 시각" className={`${inputCls} w-[190px]`} />
         <span className="text-xs text-slate-400">{total.toLocaleString()} 건</span>
+      </div>
+
+      {/* 내보내기 */}
+      <div className="mt-3 flex items-center gap-2 flex-wrap">
+        <Download size={14} className="text-slate-400" />
+        <span className="text-xs text-slate-400">현재 필터 결과 내보내기:</span>
+        <button onClick={() => exportLogs('csv')} disabled={exporting}
+          className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-50">CSV</button>
+        <button onClick={() => exportLogs('json')} disabled={exporting}
+          className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-50">JSON</button>
+        {exporting && <span className="text-xs text-slate-400">준비 중…</span>}
       </div>
 
       {/* 요약 박스 2개 */}

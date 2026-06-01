@@ -66,8 +66,8 @@
     <!-- 공용 검색·필터 조건 (목록/건수/요약 히스토그램/TopIP 공유) -->
     <sql id="eventFilter">
         <where>
-            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
-            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
+            <if test="from != null"> AND "timestamp"::timestamptz &gt;= #{from} </if>
+            <if test="to != null">   AND "timestamp"::timestamptz &lt;  #{to} </if>
             <if test="etype != null"> AND event_type = #{etype} </if>
             <if test="ip != null"> AND (src_ip::text = #{ip} OR dest_ip::text = #{ip}) </if>
             <if test="q != null"> AND (src_ip::text ILIKE ('%' || #{q} || '%')
@@ -139,8 +139,8 @@
         SELECT date_trunc('${iv}', "timestamp"::timestamptz) AS bucket, event_type, count(*) AS cnt
         FROM ${t}
         <where>
-            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
-            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
+            <if test="from != null"> AND "timestamp"::timestamptz &gt;= #{from} </if>
+            <if test="to != null">   AND "timestamp"::timestamptz &lt;  #{to} </if>
             <if test="etype != null"> AND event_type = #{etype} </if>
         </where>
         GROUP BY bucket, event_type
@@ -175,7 +175,23 @@
         GROUP BY k ORDER BY cnt DESC LIMIT #{limit}
     </select>
 
-    <!-- ① Alert 모니터링 (최근 경보) -->
+    <!-- 공격 분류(category/classtype) 집계 — event_type보다 풍부한 축 -->
+    <select id="categories" resultMap="countRM">
+        SELECT (payload_json::jsonb)->'alert'->>'category' AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE event_type = 'alert' AND (payload_json::jsonb)->'alert'->>'category' IS NOT NULL
+        GROUP BY k ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+
+    <!-- 대상 포트(노린 서비스) Top — dest_port 컬럼 직접 -->
+    <select id="topPorts" resultMap="countRM">
+        SELECT dest_port::text AS k, count(*) AS cnt
+        FROM ${t}
+        WHERE dest_port IS NOT NULL
+        GROUP BY dest_port ORDER BY cnt DESC LIMIT #{limit}
+    </select>
+
+    <!-- ① Alert 모니터링 (최근순/심각도순 + 심각도 필터) -->
     <select id="recentAlerts" resultMap="alertRM">
         SELECT id, "timestamp",
                src_ip::text  AS src_ip,  src_port,
@@ -185,7 +201,12 @@
                (payload_json::jsonb)->'alert'->>'category'        AS category
         FROM ${t}
         WHERE event_type = 'alert'
-        ORDER BY "timestamp" DESC
+        <if test="severity != null"> AND ((payload_json::jsonb)->'alert'->>'severity')::int = #{severity} </if>
+        ORDER BY
+        <choose>
+            <when test="sort == 'severity'"> ((payload_json::jsonb)->'alert'->>'severity')::int ASC NULLS LAST, "timestamp" DESC </when>
+            <otherwise> "timestamp" DESC </otherwise>
+        </choose>
         LIMIT #{limit}
     </select>
 

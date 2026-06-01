@@ -1,30 +1,43 @@
 'use client';
 
+import { useState } from 'react';
 import { Shell } from '@/components/Shell';
 import { Card, Kpi, Skeleton, Badge, SEV_COLOR, SEV_LABEL, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { TimeSeries, Donut, BarRank } from '@/components/charts';
 import { useAuth, hasRole } from '@/lib/auth';
 import {
-  useOverview, useTimeseries, useProtocols, useTalkers, useSignatures, useRecentAlerts,
+  useOverview, useTimeseries, useProtocols, useTalkers, useSignatures,
+  useCategories, useTopPorts, useRecentAlerts,
 } from '@/lib/api';
 
 export default function OverviewPage() {
   const { user } = useAuth();
-  const staff = hasRole(user, 'STAFF'); // 관계자+ 만 시그니처·Top Talkers 노출
+  const staff = hasRole(user, 'STAFF'); // 관계자+ 만 시그니처·Top Talkers·분류·포트 노출
+
+  const [alertSort, setAlertSort] = useState<'recent' | 'severity'>('severity'); // 기본=위험순
+  const [alertSev, setAlertSev] = useState<number | undefined>(undefined);
 
   const ov = useOverview();
   const ts = useTimeseries('hour');
   const proto = useProtocols();
   const talk = useTalkers('pair', 8, staff);
   const sig = useSignatures(8, staff);
-  const alerts = useRecentAlerts(10);
+  const cat = useCategories(8, staff);
+  const ports = useTopPorts(8, staff);
+  const alerts = useRecentAlerts(12, alertSort, alertSev);
   const o = ov.data;
+
+  const chip = (on: boolean) =>
+    `text-xs px-2.5 py-1 rounded-lg font-medium ${on ? 'bg-violet-500 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'}`;
+  const SEVS: { v: number | undefined; l: string }[] = [
+    { v: undefined, l: '전체' }, { v: 1, l: '높음' }, { v: 2, l: '중간' }, { v: 3, l: '낮음' },
+  ];
 
   return (
     <Shell title="개요">
       {ov.isError && (
         <div className="mb-4 rounded-lg bg-red-500/10 text-red-500 text-sm px-4 py-3">
-          백엔드 API에 연결할 수 없습니다. 백엔드 실행 상태와 DB 접속(pg_hba/방화벽)을 확인하세요.
+          백엔드 API에 연결할 수 없습니다. 백엔드 실행 상태와 DB 접속을 확인하세요.
         </div>
       )}
 
@@ -41,14 +54,14 @@ export default function OverviewPage() {
         <Card title="시계열 이벤트 추이" sub="event_type별 시간 추이" className="xl:col-span-2">
           {ts.data ? <TimeSeries data={ts.data} /> : <Skeleton h="h-72" />}
         </Card>
-        <Card title="심각도 분포" sub="alert.severity">
+        <Card title="심각도 분포" sub="alert.severity (1=높음)">
           {o ? <Donut data={o.bySeverity} colors={SEV_COLOR} /> : <Skeleton />}
         </Card>
       </div>
 
       {/* ② 프로토콜 + ⑤ 시그니처(관계자+) */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
-        <Card title="트래픽·프로토콜 통계" sub="TCP·HTTP·DNS·TLS" className={staff ? '' : 'xl:col-span-3'}>
+        <Card title="트래픽·프로토콜 통계" sub="payload app_proto 기반" className={staff ? '' : 'xl:col-span-3'}>
           {proto.data ? <Donut data={proto.data} colors={ETYPE_COLOR} /> : <Skeleton />}
         </Card>
         {staff && (
@@ -57,6 +70,18 @@ export default function OverviewPage() {
           </Card>
         )}
       </div>
+
+      {/* 공격 분류 + 대상 포트 (관계자+, payload 차원 분석) */}
+      {staff && (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
+          <Card title="공격 분류" sub="alert.category(classtype)별 — event_type보다 풍부한 축">
+            {cat.data ? (cat.data.length ? <BarRank data={cat.data} color="#06b6d4" /> : <div className="py-8 text-center text-sm text-slate-400">category 데이터 없음</div>) : <Skeleton h="h-72" />}
+          </Card>
+          <Card title="대상 포트 Top" sub="공격이 노린 목적지 포트(서비스)">
+            {ports.data ? <BarRank data={ports.data} color="#f59e0b" /> : <Skeleton h="h-72" />}
+          </Card>
+        </div>
+      )}
 
       {/* ③ Top Talkers(관계자+) + ① Alert */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
@@ -82,7 +107,16 @@ export default function OverviewPage() {
           </Card>
         )}
 
-        <Card title="Alert 모니터링" sub="최근 경보" className={staff ? '' : 'xl:col-span-2'}>
+        <Card title="Alert 모니터링" sub="위험도 우선 정렬 · 심각도 필터" className={staff ? '' : 'xl:col-span-2'}>
+          {/* 정렬/필터 컨트롤 */}
+          <div className="flex items-center gap-1.5 mb-3 flex-wrap">
+            <button onClick={() => setAlertSort('severity')} className={chip(alertSort === 'severity')}>위험순</button>
+            <button onClick={() => setAlertSort('recent')} className={chip(alertSort === 'recent')}>최근순</button>
+            <span className="mx-1 text-slate-300 dark:text-white/20">|</span>
+            {SEVS.map((s) => (
+              <button key={s.l} onClick={() => setAlertSev(s.v)} className={chip(alertSev === s.v)}>{s.l}</button>
+            ))}
+          </div>
           {alerts.data ? (
             <ul className="space-y-3 text-sm">
               {alerts.data.map((a) => {
@@ -102,7 +136,7 @@ export default function OverviewPage() {
                   </li>
                 );
               })}
-              {alerts.data.length === 0 && <li className="text-slate-400">경보가 없습니다.</li>}
+              {alerts.data.length === 0 && <li className="text-slate-400">해당 조건의 경보가 없습니다.</li>}
             </ul>
           ) : <Skeleton />}
         </Card>

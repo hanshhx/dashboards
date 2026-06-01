@@ -65,5 +65,9 @@ public interface EventMapper {
 
     List<CountItem> signatures(@Param("t") String t, @Param("limit") int limit);
 
-    List<AlertDto> recentAlerts(@Param("t") String t, @Param("limit") int limit);
+    List<CountItem> categories(@Param("t") String t, @Param("limit") int limit);
+    List<CountItem> topPorts(@Param("t") String t, @Param("limit") int limit);
+
+    List<AlertDto> recentAlerts(@Param("t") String t, @Param("limit") int limit,
+                                @Param("sort") String sort, @Param("severity") Integer severity);
 }

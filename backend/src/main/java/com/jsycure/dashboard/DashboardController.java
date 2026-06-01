@@ -115,10 +115,35 @@ public class DashboardController {
         return service.signatures(limit);
     }
 
-    /** ① Alert 모니터링 (최근 경보) */
+    /** 공격 분류(category) 집계 */
+    @GetMapping("/stats/categories")
+    public List<CountItem> categories(@RequestParam(defaultValue = "10") int limit) {
+        return service.categories(limit);
+    }
+
+    /** 대상 포트(노린 서비스) Top */
+    @GetMapping("/stats/top-ports")
+    public List<CountItem> topPorts(@RequestParam(defaultValue = "10") int limit) {
+        return service.topPorts(limit);
+    }
+
+    /** ① Alert 모니터링 (sort=recent|severity, severity=1|2|3 필터 옵션) */
     @GetMapping("/alerts/recent")
-    public List<AlertDto> recentAlerts(@RequestParam(defaultValue = "20") int limit) {
-        return service.recentAlerts(limit);
+    public List<AlertDto> recentAlerts(@RequestParam(defaultValue = "20") int limit,
+                                       @RequestParam(defaultValue = "recent") String sort,
+                                       @RequestParam(required = false) Integer severity) {
+        return service.recentAlerts(limit, sort, severity);
+    }
+
+    /** 필터된 로그 일괄 내보내기 (payload 제외, 최대 5만건) */
+    @GetMapping("/events/export")
+    public List<EventDto> eventsExport(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) String q) {
+        return service.eventsExport(from, to, eventType, ip, q);
     }
 }
 

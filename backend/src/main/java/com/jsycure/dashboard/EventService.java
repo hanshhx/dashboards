@@ -97,8 +97,25 @@ public class EventService {
         return mapper.signatures(table, Math.min(Math.max(limit, 1), 100));
     }
 
-    /** ① Alert 모니터링 (최근 경보) */
-    public List<AlertDto> recentAlerts(int limit) {
-        return mapper.recentAlerts(table, Math.min(Math.max(limit, 1), 200));
+    /** 공격 분류(category) 집계 */
+    public List<CountItem> categories(int limit) {
+        return mapper.categories(table, Math.min(Math.max(limit, 1), 100));
+    }
+
+    /** 대상 포트 Top */
+    public List<CountItem> topPorts(int limit) {
+        return mapper.topPorts(table, Math.min(Math.max(limit, 1), 100));
+    }
+
+    /** ① Alert 모니터링 (sort=recent|severity, severity 필터 옵션) */
+    public List<AlertDto> recentAlerts(int limit, String sort, Integer severity) {
+        String s = "severity".equals(sort) ? "severity" : "recent";
+        return mapper.recentAlerts(table, Math.min(Math.max(limit, 1), 200), s, severity);
+    }
+
+    /** 필터된 로그 일괄 내보내기 (payload 제외, 최대 5만건) */
+    public List<EventDto> eventsExport(OffsetDateTime from, OffsetDateTime to,
+                                       String eventType, String ip, String q) {
+        return mapper.findEvents(table, from, to, eventType, ip, q, 50000, 0);
     }
 }

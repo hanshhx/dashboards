@@ -40,7 +40,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/events/*/payload").hasRole("ADMIN")
                 .requestMatchers("/api/events/**").hasAnyRole("STAFF", "ADMIN")
-                .requestMatchers("/api/stats/signatures", "/api/stats/top-talkers").hasAnyRole("STAFF", "ADMIN")
+                .requestMatchers("/api/stats/signatures", "/api/stats/top-talkers",
+                                 "/api/stats/categories", "/api/stats/top-ports").hasAnyRole("STAFF", "ADMIN")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> {
