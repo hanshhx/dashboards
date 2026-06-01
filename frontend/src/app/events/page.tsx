@@ -6,6 +6,7 @@ import { Shell } from '@/components/Shell';
 import { Card, Skeleton, Badge, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { PayloadModal } from '@/components/PayloadModal';
 import { useEvents, useOverview, useEventsHistogram, useEventsTopSrc } from '@/lib/api';
+import { useAuth, hasRole } from '@/lib/auth';
 import type { CountItem } from '@/lib/types';
 
 const SIZE = 50;
@@ -58,6 +59,9 @@ export default function EventsPage() {
   const [showAll, setShowAll] = useState(false);          // 전체보기 토글
   const [payloadId, setPayloadId] = useState<number | null>(null); // payload 모달
 
+  const { user } = useAuth();
+  const admin = hasRole(user, 'ADMIN'); // payload 상세/다운로드는 관리자만
+
   const ov = useOverview();
   const etypes = ['', ...((ov.data?.byEventType ?? []).map((c) => c.key).filter(Boolean) as string[])];
 
@@ -74,7 +78,7 @@ export default function EventsPage() {
     'px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-300 dark:border-white/15 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 outline-none text-sm';
 
   return (
-    <Shell title="로그 탐색">
+    <Shell title="로그 탐색" requireRole="STAFF">
       {/* ⑥ 검색·필터 */}
       <div className="rounded-2xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
@@ -141,10 +145,14 @@ export default function EventsPage() {
                         {ev.signature ?? <span className="text-slate-400">—</span>}
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <button onClick={() => setPayloadId(ev.id)}
-                          className="text-xs px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 font-medium">
-                          payload
-                        </button>
+                        {admin ? (
+                          <button onClick={() => setPayloadId(ev.id)}
+                            className="text-xs px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 font-medium">
+                            payload
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">관리자 전용</span>
+                        )}
                       </td>
                     </tr>
                   ))}

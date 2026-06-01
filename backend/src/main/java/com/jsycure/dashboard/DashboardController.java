@@ -2,7 +2,10 @@ package com.jsycure.dashboard;
 
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -119,9 +122,32 @@ public class DashboardController {
     }
 }
 
-/** 에러를 JSON으로 반환 (payload_json 캐스팅 실패, DB 연결 오류 등) */
+/** 에러를 JSON으로 반환. (Spring Security의 401/403은 SecurityConfig에서 별도 처리) */
 @RestControllerAdvice
 class ApiExceptionHandler {
+
+    /** 없는 경로 → 404 (예: 백엔드 미재빌드로 새 엔드포인트가 아직 없을 때) */
+    @ExceptionHandler(NoHandlerFoundException.class)
+    ResponseEntity<Map<String, Object>> notFound(NoHandlerFoundException e) {
+        return ResponseEntity.status(404).body(Map.of(
+                "error", "not_found", "message", "존재하지 않는 경로입니다: " + e.getRequestURL()));
+    }
+
+    /** 잘못된 요청(검증 실패 등) → 400 */
+    @ExceptionHandler(IllegalArgumentException.class)
+    ResponseEntity<Map<String, Object>> badRequest(IllegalArgumentException e) {
+        return ResponseEntity.status(400).body(Map.of(
+                "error", "bad_request", "message", String.valueOf(e.getMessage())));
+    }
+
+    /** 로그인 실패/비활성 계정 → 401 */
+    @ExceptionHandler({BadCredentialsException.class, DisabledException.class})
+    ResponseEntity<Map<String, Object>> unauthorized(Exception e) {
+        return ResponseEntity.status(401).body(Map.of(
+                "error", "unauthorized", "message", String.valueOf(e.getMessage())));
+    }
+
+    /** 그 외 (DB 오류, payload 캐스팅 실패 등) → 500 */
     @ExceptionHandler(Exception.class)
     ResponseEntity<Map<String, Object>> handle(Exception e) {
         return ResponseEntity.status(500).body(Map.of(

@@ -1,18 +1,46 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, ReactNode } from 'react';
-import { LayoutDashboard, ListFilter, Moon, Sun, ShieldCheck } from 'lucide-react';
+import { LayoutDashboard, ListFilter, Users, Moon, Sun, ShieldCheck, LogOut, Lock } from 'lucide-react';
+import { useAuth, hasRole, ROLE_LABEL, type Role } from '@/lib/auth';
 
-const NAV = [
-  { href: '/', label: '개요', icon: LayoutDashboard },
-  { href: '/events', label: '로그 탐색', icon: ListFilter },
+const NAV: { href: string; label: string; icon: typeof LayoutDashboard; min: Role }[] = [
+  { href: '/', label: '개요', icon: LayoutDashboard, min: 'GENERAL' },
+  { href: '/events', label: '로그 탐색', icon: ListFilter, min: 'STAFF' },
+  { href: '/admin/users', label: '회원 관리', icon: Users, min: 'ADMIN' },
 ];
 
-export function Shell({ title, children }: { title: string; children: ReactNode }) {
+function FullScreen({ children }: { children: ReactNode }) {
+  return <div className="min-h-screen grid place-items-center text-slate-400 text-sm">{children}</div>;
+}
+
+export function Shell({
+  title,
+  children,
+  requireRole,
+}: {
+  title: string;
+  children: ReactNode;
+  requireRole?: Role;
+}) {
   const path = usePathname();
+  const router = useRouter();
+  const { user, loading, logout } = useAuth();
+
+  // 미인증 → 로그인으로
+  useEffect(() => {
+    if (!loading && !user) router.replace('/login');
+  }, [loading, user, router]);
+
+  if (loading) return <FullScreen>불러오는 중…</FullScreen>;
+  if (!user) return <FullScreen>로그인 페이지로 이동 중…</FullScreen>;
+
+  const denied = requireRole && !hasRole(user, requireRole);
+  const nav = NAV.filter((n) => hasRole(user, n.min));
+
   return (
     <div className="flex min-h-screen">
       <aside className="w-60 shrink-0 hidden md:flex flex-col border-r border-slate-200 dark:border-white/10 bg-white dark:bg-[#10111a] md:sticky md:top-0 md:h-screen">
@@ -26,7 +54,7 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
           </div>
         </div>
         <nav className="flex-1 p-3 space-y-1 text-sm">
-          {NAV.map(({ href, label, icon: Icon }) => {
+          {nav.map(({ href, label, icon: Icon }) => {
             const active = path === href;
             return (
               <Link key={href} href={href}
@@ -48,9 +76,29 @@ export function Shell({ title, children }: { title: string; children: ReactNode 
       <div className="flex-1 flex flex-col min-w-0">
         <header className="h-16 shrink-0 flex items-center gap-3 px-4 md:px-6 border-b border-slate-200 dark:border-white/10 bg-white/80 dark:bg-[#10111a]/80 backdrop-blur sticky top-0 z-20">
           <h1 className="text-lg font-semibold">{title}</h1>
-          <div className="ml-auto"><ThemeToggle /></div>
+          <div className="ml-auto flex items-center gap-2">
+            <div className="hidden sm:flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5">
+              <span className="text-sm font-medium">{user.username}</span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-violet-500/15 text-violet-500 font-semibold">{ROLE_LABEL[user.role]}</span>
+            </div>
+            <ThemeToggle />
+            <button onClick={() => { logout(); router.replace('/login'); }} title="로그아웃"
+              className="w-9 h-9 grid place-items-center rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-red-500/10 hover:text-red-500">
+              <LogOut size={18} />
+            </button>
+          </div>
         </header>
-        <main className="flex-1 p-4 md:p-6">{children}</main>
+        <main className="flex-1 p-4 md:p-6">
+          {denied ? (
+            <div className="grid place-items-center py-24 text-center">
+              <Lock size={40} className="text-slate-300 dark:text-white/20 mb-3" />
+              <div className="font-semibold">접근 권한이 없습니다</div>
+              <div className="text-sm text-slate-400 mt-1">
+                이 페이지는 <b>{ROLE_LABEL[requireRole!]}</b> 이상만 볼 수 있어요. (현재: {ROLE_LABEL[user.role]})
+              </div>
+            </div>
+          ) : children}
+        </main>
       </div>
     </div>
   );
