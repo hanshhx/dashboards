@@ -30,6 +30,20 @@ public interface EventMapper {
                      @Param("ip") String ip,
                      @Param("q") String q);
 
+    /** payload 단건 (상세 모달 / 다운로드) */
+    EventPayloadDto findPayloadById(@Param("t") String t, @Param("id") long id);
+
+    /** 로그탐색 요약 ① 시각별 로그 개수 (필터 반영) */
+    List<CountItem> eventsHistogram(@Param("t") String t, @Param("iv") String iv,
+                                    @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to,
+                                    @Param("etype") String etype, @Param("ip") String ip, @Param("q") String q);
+
+    /** 로그탐색 요약 ② Top 공격 출발지 IP (필터 반영) */
+    List<CountItem> eventsTopSrc(@Param("t") String t,
+                                 @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to,
+                                 @Param("etype") String etype, @Param("ip") String ip, @Param("q") String q,
+                                 @Param("limit") int limit);
+
     long total(@Param("t") String t);
     long alertCount(@Param("t") String t);
     long distinctSrcIp(@Param("t") String t);

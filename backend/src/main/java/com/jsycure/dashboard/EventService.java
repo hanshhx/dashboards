@@ -35,6 +35,28 @@ public class EventService {
         return new PageResponse<>(items, total, p, s);
     }
 
+    /** payload 단건 (상세/다운로드) */
+    public EventPayloadDto eventPayload(long id) {
+        return mapper.findPayloadById(table, id);
+    }
+
+    /** 로그탐색 요약 ① 시각별 로그 개수 (interval 화이트리스트) */
+    public List<CountItem> eventsHistogram(OffsetDateTime from, OffsetDateTime to,
+                                           String eventType, String ip, String q, String interval) {
+        String iv = switch (interval == null ? "hour" : interval) {
+            case "minute" -> "minute";
+            case "day" -> "day";
+            default -> "hour";
+        };
+        return mapper.eventsHistogram(table, iv, from, to, eventType, ip, q);
+    }
+
+    /** 로그탐색 요약 ② Top 공격 출발지 IP */
+    public List<CountItem> eventsTopSrc(OffsetDateTime from, OffsetDateTime to,
+                                        String eventType, String ip, String q, int limit) {
+        return mapper.eventsTopSrc(table, from, to, eventType, ip, q, Math.min(Math.max(limit, 1), 100));
+    }
+
     /** 개요(KPI) */
     public OverviewDto overview() {
         return new OverviewDto(

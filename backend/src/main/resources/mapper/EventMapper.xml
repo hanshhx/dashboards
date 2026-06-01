@@ -8,6 +8,7 @@
       signature/severity/category/app_proto 는 payload_json(JSON)에서 추출 — 컬럼 추가 없음.
       payload_json 은 ::jsonb 캐스팅으로 text/json/jsonb 어느 타입이든 안전 처리.
       "timestamp" 는 예약어라 항상 큰따옴표로 인용.
+      ※ 로그 목록(findEvents)은 payload를 내보내지 않고 signature만 노출. payload 원문은 findPayloadById로 단건 조회.
     -->
 
     <resultMap id="eventRM" type="com.jsycure.dashboard.EventDto">
@@ -20,6 +21,13 @@
             <arg    column="dest_ip"    javaType="java.lang.String"/>
             <arg    column="dest_port"  javaType="java.lang.Integer"/>
             <arg    column="proto"      javaType="java.lang.String"/>
+            <arg    column="signature"  javaType="java.lang.String"/>
+        </constructor>
+    </resultMap>
+
+    <resultMap id="payloadRM" type="com.jsycure.dashboard.EventPayloadDto">
+        <constructor>
+            <idArg column="id"           javaType="java.lang.Long"/>
             <arg    column="payload_json" javaType="java.lang.String"/>
         </constructor>
     </resultMap>
@@ -62,13 +70,8 @@
         </constructor>
     </resultMap>
 
-    <!-- ⑥ 검색·필터 + 로그 테이블 -->
-    <select id="findEvents" resultMap="eventRM">
-        SELECT id, "timestamp", event_type,
-               src_ip::text  AS src_ip,  src_port,
-               dest_ip::text AS dest_ip, dest_port,
-               proto, payload_json::text AS payload_json
-        FROM ${t}
+    <!-- 공용 검색·필터 조건 (목록/건수/요약 히스토그램/TopIP 공유) -->
+    <sql id="eventFilter">
         <where>
             <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
             <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
@@ -78,21 +81,47 @@
                                        OR dest_ip::text ILIKE ('%' || #{q} || '%')
                                        OR payload_json::text ILIKE ('%' || #{q} || '%')) </if>
         </where>
+    </sql>
+
+    <!-- ⑥ 검색·필터 + 로그 테이블 (payload 제외, signature만 노출) -->
+    <select id="findEvents" resultMap="eventRM">
+        SELECT id, "timestamp", event_type,
+               src_ip::text  AS src_ip,  src_port,
+               dest_ip::text AS dest_ip, dest_port,
+               proto, (payload_json::jsonb)->'alert'->>'signature' AS signature
+        FROM ${t}
+        <include refid="eventFilter"/>
         ORDER BY "timestamp" DESC
         LIMIT #{limit} OFFSET #{offset}
     </select>
 
     <select id="countEvents" resultType="long">
         SELECT count(*) FROM ${t}
-        <where>
-            <if test="from != null"> AND "timestamp" &gt;= #{from} </if>
-            <if test="to != null">   AND "timestamp" &lt;  #{to} </if>
-            <if test="etype != null"> AND event_type = #{etype} </if>
-            <if test="ip != null"> AND (src_ip::text = #{ip} OR dest_ip::text = #{ip}) </if>
-            <if test="q != null"> AND (src_ip::text ILIKE ('%' || #{q} || '%')
-                                       OR dest_ip::text ILIKE ('%' || #{q} || '%')
-                                       OR payload_json::text ILIKE ('%' || #{q} || '%')) </if>
-        </where>
+        <include refid="eventFilter"/>
+    </select>
+
+    <!-- payload 단건 (상세 모달 / JSON·CSV 다운로드) -->
+    <select id="findPayloadById" resultMap="payloadRM">
+        SELECT id, payload_json::text AS payload_json
+        FROM ${t} WHERE id = #{id}
+    </select>
+
+    <!-- 로그탐색 요약 ① 시각별 로그 개수 (iv = minute|hour|day, 서비스 검증) -->
+    <select id="eventsHistogram" resultMap="countRM">
+        SELECT to_char(date_trunc('${iv}', "timestamp"::timestamptz), 'YYYY-MM-DD HH24:MI') AS k,
+               count(*) AS cnt
+        FROM ${t}
+        <include refid="eventFilter"/>
+        GROUP BY date_trunc('${iv}', "timestamp"::timestamptz)
+        ORDER BY date_trunc('${iv}', "timestamp"::timestamptz)
+    </select>
+
+    <!-- 로그탐색 요약 ② Top 공격 출발지 IP -->
+    <select id="eventsTopSrc" resultMap="countRM">
+        SELECT src_ip::text AS k, count(*) AS cnt
+        FROM ${t}
+        <include refid="eventFilter"/>
+        GROUP BY src_ip ORDER BY cnt DESC LIMIT #{limit}
     </select>
 
     <!-- 개요(KPI) -->

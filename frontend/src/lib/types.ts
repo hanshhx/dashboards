@@ -36,7 +36,10 @@ export type EventRow = {
   destIp: string | null;
   destPort: number | null;
   proto: string | null;
-  payloadJson: string;
+  signature: string | null;   // 목록엔 payload 대신 signature만
 };
+
+// payload 상세 (모달/다운로드) — id로 단건 조회
+export type EventPayload = { id: number; payloadJson: string };
 
 export type Page<T> = { items: T[]; total: number; page: number; size: number };

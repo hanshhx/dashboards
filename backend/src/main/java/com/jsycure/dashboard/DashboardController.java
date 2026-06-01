@@ -46,6 +46,36 @@ public class DashboardController {
         return service.events(from, to, eventType, ip, q, page, size);
     }
 
+    /** payload 상세 (모달/다운로드) — 목록엔 payload를 안 내보내고 여기서 단건 조회 */
+    @GetMapping("/events/{id}/payload")
+    public EventPayloadDto eventPayload(@PathVariable long id) {
+        return service.eventPayload(id);
+    }
+
+    /** 로그탐색 요약 ① 시각별 로그 개수 (현재 필터 반영) */
+    @GetMapping("/events/histogram")
+    public List<CountItem> eventsHistogram(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "hour") String interval) {
+        return service.eventsHistogram(from, to, eventType, ip, q, interval);
+    }
+
+    /** 로그탐색 요약 ② Top 공격 출발지 IP (현재 필터 반영) */
+    @GetMapping("/events/top-src")
+    public List<CountItem> eventsTopSrc(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime to,
+            @RequestParam(required = false) String eventType,
+            @RequestParam(required = false) String ip,
+            @RequestParam(required = false) String q,
+            @RequestParam(defaultValue = "10") int limit) {
+        return service.eventsTopSrc(from, to, eventType, ip, q, limit);
+    }
+
     /** 개요(KPI) */
     @GetMapping("/stats/overview")
     public OverviewDto overview() {

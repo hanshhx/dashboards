@@ -18,8 +18,11 @@ record EventDto(
         String destIp,
         Integer destPort,
         String proto,
-        String payloadJson   // payload_json 원본(JSON 문자열). 상세 보기용.
+        String signature     // payload_json에서 추출한 시그니처. 목록엔 payload를 숨기고 signature만 노출.
 ) {}
+
+/** payload 상세 (모달/다운로드용) — id로 단건 조회 */
+record EventPayloadDto(Long id, String payloadJson) {}
 
 /** 페이지네이션 응답 */
 record PageResponse<T>(List<T> items, long total, int page, int size) {}
