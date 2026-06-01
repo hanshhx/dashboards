@@ -24,4 +24,10 @@ public class AnalysisController {
     public SignatureProfileDto signature(@RequestParam String sig) {
         return service.signatureProfile(sig);
     }
+
+    /** MITRE ATT&CK 전술 매트릭스 */
+    @GetMapping("/attack-matrix")
+    public AttackMatrix attackMatrix() {
+        return service.attackMatrix();
+    }
 }

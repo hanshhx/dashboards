@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, ReactNode } from 'react';
-import { LayoutDashboard, ListFilter, Users, Moon, Sun, ShieldCheck, LogOut, Lock, Crosshair, Fingerprint, ScrollText } from 'lucide-react';
+import { LayoutDashboard, ListFilter, Users, Moon, Sun, ShieldCheck, LogOut, Lock, Crosshair, Fingerprint, ScrollText, LayoutGrid } from 'lucide-react';
 import { useAuth, hasRole, ROLE_LABEL, type Role } from '@/lib/auth';
 
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard; min: Role }[] = [
   { href: '/', label: '개요', icon: LayoutDashboard, min: 'GENERAL' },
   { href: '/events', label: '로그 탐색', icon: ListFilter, min: 'STAFF' },
+  { href: '/attack', label: 'ATT&CK 매트릭스', icon: LayoutGrid, min: 'STAFF' },
   { href: '/analysis/ip', label: 'IP 분석', icon: Crosshair, min: 'STAFF' },
   { href: '/analysis/signature', label: '시그니처 분석', icon: Fingerprint, min: 'STAFF' },
   { href: '/admin/users', label: '회원 관리', icon: Users, min: 'ADMIN' },

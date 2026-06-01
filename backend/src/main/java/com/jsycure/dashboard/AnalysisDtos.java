@@ -28,3 +28,9 @@ record SignatureProfileDto(
 
 /** 감사 로그 1건 */
 record AuditEntry(Long id, String at, String username, String action, String detail) {}
+
+/** MITRE ATT&CK 전술 1개 (매핑된 category들 포함) */
+record AttackTactic(String id, String tactic, String ko, long count, List<CountItem> categories) {}
+
+/** ATT&CK 매트릭스 전체 */
+record AttackMatrix(List<AttackTactic> tactics, long mapped, long unmapped, List<CountItem> unmappedCategories) {}
