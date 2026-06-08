@@ -191,9 +191,3 @@ export const useSignatureProfile = (sig: string | null) =>
 export type AuditEntry = { id: number; at: string; username: string; action: string; detail: string };
 export const useAudit = (limit = 100, enabled = true) =>
   useQuery({ queryKey: ['audit', limit], enabled, queryFn: () => get<AuditEntry[]>(`/admin/audit?limit=${limit}`) });
-
-// ── MITRE ATT&CK 매트릭스 (관계자+) ──
-export type AttackTactic = { id: string; tactic: string; ko: string; count: number; categories: CountItem[] };
-export type AttackMatrix = { tactics: AttackTactic[]; mapped: number; unmapped: number; unmappedCategories: CountItem[] };
-export const useAttackMatrix = (enabled = true) =>
-  useQuery({ queryKey: ['attack-matrix'], enabled, queryFn: () => get<AttackMatrix>('/analysis/attack-matrix') });

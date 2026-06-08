@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from 'react';
 import { X, Download, FileJson, FileSpreadsheet } from 'lucide-react';
 import { useEventPayload } from '@/lib/api';
+import { downloadBlob } from '@/lib/download';
 
 /** 중첩 JSON → "key,value" 평탄화 (CSV용) */
 function flatten(obj: unknown, prefix = '', out: Record<string, string> = {}) {
@@ -22,18 +23,6 @@ function flatten(obj: unknown, prefix = '', out: Record<string, string> = {}) {
 }
 
 const csvCell = (s: string) => `"${s.replace(/"/g, '""')}"`;
-
-function download(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
 
 export function PayloadModal({ id, onClose }: { id: number | null; onClose: () => void }) {
   const { data, isLoading, isError } = useEventPayload(id);
@@ -57,7 +46,7 @@ export function PayloadModal({ id, onClose }: { id: number | null; onClose: () =
 
   if (id == null) return null;
 
-  const onDownloadJson = () => download(`event-${id}.json`, pretty || '{}', 'application/json');
+  const onDownloadJson = () => downloadBlob(`event-${id}.json`, pretty || '{}', 'application/json');
   const onDownloadCsv = () => {
     let rows: [string, string][] = [];
     try {
@@ -66,21 +55,21 @@ export function PayloadModal({ id, onClose }: { id: number | null; onClose: () =
       rows = [['payload', data?.payloadJson ?? '']];
     }
     const csv = ['key,value', ...rows.map(([k, v]) => `${csvCell(k)},${csvCell(v)}`)].join('\r\n');
-    download(`event-${id}.csv`, '﻿' + csv, 'text/csv;charset=utf-8'); // BOM: 엑셀 한글
+    downloadBlob(`event-${id}.csv`, '﻿' + csv, 'text/csv;charset=utf-8'); // BOM: 엑셀 한글
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-2xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 shadow-2xl"
+        className="w-full max-w-2xl max-h-[85vh] flex flex-col rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center gap-2 px-5 py-4 border-b border-slate-200 dark:border-white/10">
-          <FileJson size={18} className="text-violet-500" />
-          <h3 className="font-semibold">payload 상세 <span className="text-slate-400 font-normal">#{id}</span></h3>
+          <FileJson size={18} className="text-accent-600 dark:text-accent-500" />
+          <h3 className="font-semibold">원문 로그 <span className="text-slate-400 font-normal">#{id}</span></h3>
           <div className="ml-auto flex items-center gap-2">
             <button onClick={onDownloadJson} disabled={!pretty}
               className="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-40">
@@ -98,8 +87,8 @@ export function PayloadModal({ id, onClose }: { id: number | null; onClose: () =
         </div>
 
         <div className="p-4 overflow-auto">
-          {isLoading && <div className="py-10 text-center text-slate-400">불러오는 중…</div>}
-          {isError && <div className="py-10 text-center text-red-500">payload를 불러오지 못했습니다.</div>}
+          {isLoading && <div className="py-10 text-center text-slate-400">불러오는 중</div>}
+          {isError && <div className="py-10 text-center text-red-500">원문을 불러오지 못했습니다.</div>}
           {data && (
             <pre className="text-xs leading-relaxed font-mono whitespace-pre-wrap break-all text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-black/30 rounded-lg p-4">
               {pretty}

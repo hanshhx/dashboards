@@ -4,10 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 매퍼 호출 + 테이블명 검증 + 개요(KPI) 조합.
@@ -135,72 +132,5 @@ public class EventService {
         return new SignatureProfileDto(sig,
                 mapper.sigCount(table, sig), mapper.sigSeverity(table, sig),
                 mapper.sigTopSrc(table, sig, 10), mapper.sigPorts(table, sig, 10), mapper.sigTimeline(table, sig));
-    }
-
-    // ===== MITRE ATT&CK 매핑 =====
-    // 표준 14개 전술 (kill-chain 순서). {id, 영문, 한글}
-    private static final String[][] TACTICS = {
-            {"TA0043", "Reconnaissance", "정찰"},
-            {"TA0042", "Resource Development", "자원 개발"},
-            {"TA0001", "Initial Access", "초기 침투"},
-            {"TA0002", "Execution", "실행"},
-            {"TA0003", "Persistence", "지속"},
-            {"TA0004", "Privilege Escalation", "권한 상승"},
-            {"TA0005", "Defense Evasion", "방어 회피"},
-            {"TA0006", "Credential Access", "자격증명 접근"},
-            {"TA0007", "Discovery", "탐색"},
-            {"TA0008", "Lateral Movement", "내부 이동"},
-            {"TA0009", "Collection", "수집"},
-            {"TA0011", "Command and Control", "명령·제어(C2)"},
-            {"TA0010", "Exfiltration", "유출"},
-            {"TA0040", "Impact", "영향"},
-    };
-
-    /** Suricata category(classtype) → ATT&CK 전술 (키워드 휴리스틱). 미매칭은 null. */
-    private static String classify(String category) {
-        if (category == null) return null;
-        String c = category.toLowerCase();
-        if (c.contains("scan") || c.contains("recon")) return "Reconnaissance";
-        if (c.contains("web application")) return "Initial Access";
-        if (c.contains("social engineer") || c.contains("phishing")) return "Initial Access";
-        if (c.contains("executable") || c.contains("shellcode")) return "Execution";
-        if (c.contains("privilege")) return "Privilege Escalation";
-        if (c.contains("credential") || c.contains("brute") || c.contains("login attempt") || c.contains("password")) return "Credential Access";
-        if (c.contains("trojan") || c.contains("command and control") || c.contains("cnc") || c.contains("malware") || c.contains("botnet")) return "Command and Control";
-        if (c.contains("information leak") || c.contains("exfil")) return "Exfiltration";
-        if (c.contains("denial of service") || c.contains("ddos") || c.contains("mining") || c.contains("impact")) return "Impact";
-        if (c.contains("evasion") || c.contains("policy violation")) return "Defense Evasion";
-        if (c.contains("protocol command decode") || c.contains("enumeration") || c.contains("discovery")) return "Discovery";
-        if (c.contains("lateral")) return "Lateral Movement";
-        if (c.contains("collection")) return "Collection";
-        if (c.contains("persistence")) return "Persistence";
-        return null;
-    }
-
-    /** 탐지된 공격을 ATT&CK 전술 매트릭스로 집계 */
-    public AttackMatrix attackMatrix() {
-        List<CountItem> cats = mapper.categories(table, 1000);
-        Map<String, Long> counts = new HashMap<>();
-        Map<String, List<CountItem>> byTactic = new HashMap<>();
-        long mapped = 0, unmapped = 0;
-        List<CountItem> unmappedCats = new ArrayList<>();
-        for (CountItem ci : cats) {
-            String tactic = classify(ci.key());
-            if (tactic == null) {
-                unmapped += ci.count();
-                unmappedCats.add(ci);
-                continue;
-            }
-            mapped += ci.count();
-            counts.merge(tactic, ci.count(), Long::sum);
-            byTactic.computeIfAbsent(tactic, k -> new ArrayList<>()).add(ci);
-        }
-        List<AttackTactic> tactics = new ArrayList<>();
-        for (String[] t : TACTICS) {
-            List<CountItem> tc = new ArrayList<>(byTactic.getOrDefault(t[1], List.of()));
-            tc.sort((a, b) -> Long.compare(b.count(), a.count()));
-            tactics.add(new AttackTactic(t[0], t[1], t[2], counts.getOrDefault(t[1], 0L), tc));
-        }
-        return new AttackMatrix(tactics, mapped, unmapped, unmappedCats);
     }
 }

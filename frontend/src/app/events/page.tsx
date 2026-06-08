@@ -3,29 +3,18 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Search, FileSearch, Download } from 'lucide-react';
 import { Shell } from '@/components/Shell';
-import { Card, Skeleton, Badge, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
+import { Card, Skeleton, Badge, Empty, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { PayloadModal } from '@/components/PayloadModal';
+import { downloadBlob } from '@/lib/download';
 import { useEvents, useOverview, useEventsHistogram, useEventsTopSrc, fetchEventsExport } from '@/lib/api';
 import { useAuth, hasRole } from '@/lib/auth';
 import type { CountItem, EventRow } from '@/lib/types';
 
 const SIZE = 50;
 
-function downloadBlob(filename: string, content: string, mime: string) {
-  const blob = new Blob([content], { type: mime });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
 /** 시각별 로그 개수 — 가로 막대 (스크롤) */
 function HistBars({ data }: { data: CountItem[] }) {
-  if (data.length === 0) return <div className="py-8 text-center text-sm text-slate-400">데이터 없음</div>;
+  if (data.length === 0) return <Empty />;
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
     <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
@@ -33,7 +22,7 @@ function HistBars({ data }: { data: CountItem[] }) {
         <div key={i} className="flex items-center gap-2 text-xs">
           <span className="w-24 shrink-0 text-slate-500 tabular-nums">{(d.key ?? '').slice(5)}</span>
           <div className="flex-1 h-4 rounded bg-slate-100 dark:bg-white/5 overflow-hidden">
-            <div className="h-full rounded bg-gradient-to-r from-violet-500 to-blue-500"
+            <div className="h-full rounded bg-accent-600"
                  style={{ width: `${(d.count / max) * 100}%` }} />
           </div>
           <span className="w-12 shrink-0 text-right font-medium tabular-nums">{fmt(d.count)}</span>
@@ -45,13 +34,13 @@ function HistBars({ data }: { data: CountItem[] }) {
 
 /** Top 공격 출발지 IP 순위 */
 function TopIpRank({ data }: { data: CountItem[] }) {
-  if (data.length === 0) return <div className="py-8 text-center text-sm text-slate-400">데이터 없음</div>;
+  if (data.length === 0) return <Empty />;
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
     <ol className="space-y-1.5">
       {data.map((d, i) => (
         <li key={i} className="flex items-center gap-3 text-sm">
-          <span className={`w-5 text-center text-xs font-bold ${i < 3 ? 'text-violet-500' : 'text-slate-400'}`}>{i + 1}</span>
+          <span className={`w-5 text-center text-xs font-bold ${i < 3 ? 'text-accent-600 dark:text-accent-500' : 'text-slate-400'}`}>{i + 1}</span>
           <span className="w-36 shrink-0 font-mono text-xs truncate" title={d.key ?? ''}>{d.key ?? '—'}</span>
           <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-white/5 overflow-hidden">
             <div className="h-full rounded-full bg-red-500/80" style={{ width: `${(d.count / max) * 100}%` }} />
@@ -73,6 +62,7 @@ export default function EventsPage() {
   const [from, setFrom] = useState('');
   const [to, setTo] = useState('');
   const [exporting, setExporting] = useState(false);
+  const [exportErr, setExportErr] = useState('');
 
   const { user } = useAuth();
   const admin = hasRole(user, 'ADMIN'); // payload 상세/다운로드는 관리자만
@@ -88,6 +78,7 @@ export default function EventsPage() {
 
   async function exportLogs(format: 'csv' | 'json') {
     setExporting(true);
+    setExportErr('');
     try {
       const rows = await fetchEventsExport(filter);
       const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
@@ -100,7 +91,7 @@ export default function EventsPage() {
         downloadBlob(`logs-${stamp}.csv`, '﻿' + csv, 'text/csv;charset=utf-8');
       }
     } catch (e) {
-      alert('내보내기 실패: ' + (e instanceof Error ? e.message : ''));
+      setExportErr('내보내기에 실패했습니다. ' + (e instanceof Error ? e.message : ''));
     } finally {
       setExporting(false);
     }
@@ -114,23 +105,23 @@ export default function EventsPage() {
   const reset = () => setPage(0);
 
   const inputCls =
-    'px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-300 dark:border-white/15 focus:border-violet-500 focus:ring-2 focus:ring-violet-500/30 outline-none text-sm';
+    'px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border border-slate-300 dark:border-white/15 focus:border-accent-600 focus:ring-2 focus:ring-accent-600/30 outline-none text-sm';
 
   return (
     <Shell title="로그 탐색" requireRole="STAFF">
-      {/* ⑥ 검색·필터 */}
-      <div className="rounded-2xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
+      {/* 검색·필터 */}
+      <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={q} onChange={(e) => { setQ(e.target.value); reset(); }}
-            placeholder="IP · 시그니처 · payload 검색"
+            placeholder="IP·시그니처·내용 검색"
             className={`${inputCls} w-full pl-9`} />
         </div>
         <input value={ip} onChange={(e) => { setIp(e.target.value); reset(); }}
           placeholder="IP 정확히 일치" className={`${inputCls} w-44`} />
         <select value={eventType} onChange={(e) => { setEventType(e.target.value); reset(); }}
-          className="px-3 py-2 rounded-lg bg-white dark:bg-[#1c1d2a] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-white/15 focus:border-violet-500 outline-none text-sm">
-          {etypes.map((t) => <option key={t} value={t} className="bg-white dark:bg-[#1c1d2a]">{t || 'event_type 전체'}</option>)}
+          className="px-3 py-2 rounded-lg bg-white dark:bg-[#1c1d2a] text-slate-900 dark:text-slate-100 border border-slate-300 dark:border-white/15 focus:border-accent-600 outline-none text-sm">
+          {etypes.map((t) => <option key={t} value={t} className="bg-white dark:bg-[#1c1d2a]">{t || '전체 유형'}</option>)}
         </select>
         <input type="datetime-local" value={from} onChange={(e) => { setFrom(e.target.value); reset(); }}
           title="시작 시각" className={`${inputCls} w-[190px]`} />
@@ -148,8 +139,9 @@ export default function EventsPage() {
           className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-50">CSV</button>
         <button onClick={() => exportLogs('json')} disabled={exporting}
           className="text-xs px-2.5 py-1.5 rounded-lg bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 disabled:opacity-50">JSON</button>
-        {exporting && <span className="text-xs text-slate-400">준비 중…</span>}
+        {exporting && <span className="text-xs text-slate-400">내보내는 중</span>}
       </div>
+      {exportErr && <div className="mt-2 text-xs rounded-lg bg-red-500/10 text-red-500 px-3 py-2">{exportErr}</div>}
 
       {/* 요약 박스 2개 */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -163,8 +155,8 @@ export default function EventsPage() {
 
       {/* 전체보기 토글 */}
       <button onClick={() => setShowAll((v) => !v)}
-        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/[.03] text-sm font-medium">
-        <FileSearch size={16} className="text-violet-500" />
+        className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/[.03] text-sm font-medium">
+        <FileSearch size={16} className="text-accent-600 dark:text-accent-500" />
         {showAll ? '로그 테이블 접기' : `전체 로그 보기 (${total.toLocaleString()}건)`}
         {showAll ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
       </button>
@@ -172,7 +164,7 @@ export default function EventsPage() {
       {/* 로그 테이블 (전체보기 시) */}
       {showAll && (
         <>
-          <div className="mt-4 rounded-2xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 overflow-hidden">
+          <div className="mt-4 rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-slate-500 bg-slate-50 dark:bg-white/[.03]">
@@ -180,13 +172,13 @@ export default function EventsPage() {
                     <th className="px-4 py-3 font-medium">시각</th>
                     <th className="px-4 py-3 font-medium">유형</th>
                     <th className="px-4 py-3 font-medium">출발지 → 목적지</th>
-                    <th className="px-4 py-3 font-medium">proto</th>
+                    <th className="px-4 py-3 font-medium">프로토콜</th>
                     <th className="px-4 py-3 font-medium">시그니처</th>
                     <th className="px-4 py-3 font-medium text-right">상세</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-white/5">
-                  {isLoading && <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">불러오는 중…</td></tr>}
+                  {isLoading && <tr><td colSpan={6} className="px-4 py-10 text-center text-slate-400">불러오는 중</td></tr>}
                   {isError && <tr><td colSpan={6} className="px-4 py-10 text-center text-red-500">백엔드 API 연결 실패</td></tr>}
                   {data?.items.map((ev) => (
                     <tr key={ev.id} className="hover:bg-slate-50 dark:hover:bg-white/[.03] align-top">
@@ -202,8 +194,8 @@ export default function EventsPage() {
                       <td className="px-4 py-3 text-right">
                         {admin ? (
                           <button onClick={() => setPayloadId(ev.id)}
-                            className="text-xs px-2.5 py-1 rounded-lg bg-violet-500/10 text-violet-500 hover:bg-violet-500/20 font-medium">
-                            payload
+                            className="text-xs px-2.5 py-1 rounded-lg bg-accent-600/10 text-accent-600 dark:text-accent-500 hover:bg-accent-600/20 font-medium">
+                            원문
                           </button>
                         ) : (
                           <span className="text-[11px] text-slate-400">관리자 전용</span>

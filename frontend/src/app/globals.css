@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { --accent: #7c5cff; }
+:root { --accent: #2563eb; }
 html, body { height: 100%; }
 body {
   @apply bg-slate-100 text-slate-900 dark:bg-[#0a0b12] dark:text-slate-100;

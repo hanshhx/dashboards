@@ -7,7 +7,7 @@ import {
   PieChart, Pie, Cell, BarChart, Bar,
 } from 'recharts';
 import type { TimePoint, CountItem } from '@/lib/types';
-import { ETYPE_COLOR } from './ui';
+import { ETYPE_COLOR, CHART_PALETTE } from './ui';
 
 function useAxis() {
   const { resolvedTheme } = useTheme();
@@ -20,7 +20,7 @@ function useAxis() {
   };
 }
 
-/** ④ 시계열 이벤트 추이 — event_type별 누적 영역 */
+/** 이벤트 추이 — 유형별 누적 영역 차트 */
 export function TimeSeries({ data }: { data: TimePoint[] }) {
   const { grid, tick, tooltipBg } = useAxis();
   const { rows, keys } = useMemo(() => {
@@ -46,7 +46,7 @@ export function TimeSeries({ data }: { data: TimePoint[] }) {
         <Legend wrapperStyle={{ fontSize: 12 }} />
         {keys.map((k) => (
           <Area key={k} type="monotone" dataKey={k} stackId="1"
-                stroke={ETYPE_COLOR[k] || '#7c5cff'} fill={(ETYPE_COLOR[k] || '#7c5cff') + '55'} />
+                stroke={ETYPE_COLOR[k] || '#2563eb'} fill={(ETYPE_COLOR[k] || '#2563eb') + '55'} />
         ))}
       </AreaChart>
     </ResponsiveContainer>
@@ -56,7 +56,7 @@ export function TimeSeries({ data }: { data: TimePoint[] }) {
 /** 도넛 (심각도 분포 / 프로토콜 통계) */
 export function Donut({ data, colors }: { data: CountItem[]; colors?: Record<string, string> }) {
   const { tooltipBg, grid } = useAxis();
-  const palette = ['#7c5cff', '#5b8cff', '#22c55e', '#f59e0b', '#ef4444', '#a855f7', '#06b6d4'];
+  const palette = CHART_PALETTE;
   return (
     <ResponsiveContainer width="100%" height={260}>
       <PieChart>
@@ -72,7 +72,7 @@ export function Donut({ data, colors }: { data: CountItem[]; colors?: Record<str
   );
 }
 
-/** ⑤ 시그니처별 집계 — 가로 막대 */
+/** 탐지 시그니처 — 가로 막대 차트 */
 export function BarRank({ data, color = '#f97316' }: { data: CountItem[]; color?: string }) {
   const { grid, tick, tooltipBg } = useAxis();
   // 항목 수에 맞춰 높이를 늘려 라벨이 겹치지 않게
@@ -96,8 +96,8 @@ export function BarRank({ data, color = '#f97316' }: { data: CountItem[]; color?
 }
 
 /** 컴팩트 가로 막대 리스트 (스크롤) — 드릴다운/요약용 */
-export function MiniBars({ data, color = '#7c5cff', maxH = 240 }: { data: CountItem[]; color?: string; maxH?: number }) {
-  if (!data.length) return <div className="py-6 text-center text-sm text-slate-400">데이터 없음</div>;
+export function MiniBars({ data, color = '#2563eb', maxH = 240 }: { data: CountItem[]; color?: string; maxH?: number }) {
+  if (!data.length) return <div className="py-6 text-center text-sm text-slate-400">표시할 데이터가 없습니다</div>;
   const max = Math.max(...data.map((d) => d.count), 1);
   return (
     <div className="space-y-1.5 overflow-y-auto pr-1" style={{ maxHeight: maxH }}>
