@@ -6,9 +6,9 @@ import { useAudit } from '@/lib/api';
 
 const ACTION: Record<string, { label: string; color: string }> = {
   LOGIN: { label: '로그인', color: '#22c55e' },
-  ROLE_CHANGE: { label: '등급 변경', color: '#a855f7' },
-  USER_DELETE: { label: '회원 삭제', color: '#ef4444' },
-  PASSWORD_CHANGE: { label: '비번 변경', color: '#5b8cff' },
+  ROLE_CHANGE: { label: '등급 변경', color: '#2563eb' },
+  USER_DELETE: { label: '회원 삭제', color: '#dc2626' },
+  PASSWORD_CHANGE: { label: '비번 변경', color: '#0891b2' },
   PAYLOAD_VIEW: { label: '원문 열람', color: '#f59e0b' },
 };
 

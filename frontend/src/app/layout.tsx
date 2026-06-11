@@ -3,8 +3,8 @@ import type { Metadata } from 'next';
 import { Providers } from './providers';
 
 export const metadata: Metadata = {
-  title: 'SentinelView · Suricata 보안 로그 대시보드',
-  description: 'Suricata eve.json · PostgreSQL 보안 로그 대시보드',
+  title: 'Packet Board · 네트워크 보안 로그',
+  description: '네트워크 보안 로그 분석 대시보드',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
