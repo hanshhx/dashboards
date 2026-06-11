@@ -12,16 +12,7 @@ import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
-/**
- * 대시보드 6대 기능 + 개요 API. (데이터 접근은 MyBatis → EventService)
- *  ① /api/alerts/recent      Alert 모니터링
- *  ② /api/stats/protocols    트래픽·프로토콜 통계
- *  ③ /api/stats/top-talkers  Top Talkers
- *  ④ /api/stats/timeseries   시계열 이벤트 추이
- *  ⑤ /api/stats/signatures   시그니처별 집계
- *  ⑥ /api/events             검색·필터(기간·IP·event_type)
- *     /api/stats/overview     KPI
- */
+/** 대시보드 조회 API. 데이터 접근은 MyBatis(EventService) 경유. */
 @RestController
 @RequestMapping("/api")
 public class DashboardController {
@@ -39,7 +30,7 @@ public class DashboardController {
         return Map.of("status", "ok");
     }
 
-    /** ⑥ 검색·필터 + 로그 테이블 (페이지네이션) */
+    /** 검색·필터 + 로그 테이블 (페이지네이션) */
     @GetMapping("/events")
     public PageResponse<EventDto> events(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
@@ -59,7 +50,7 @@ public class DashboardController {
         return service.eventPayload(id);
     }
 
-    /** 로그탐색 요약 ① 시각별 로그 개수 (현재 필터 반영) */
+    /** 로그탐색 요약 시각별 로그 개수 (현재 필터 반영) */
     @GetMapping("/events/histogram")
     public List<CountItem> eventsHistogram(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
@@ -71,7 +62,7 @@ public class DashboardController {
         return service.eventsHistogram(from, to, eventType, ip, q, interval);
     }
 
-    /** 로그탐색 요약 ② Top 공격 출발지 IP (현재 필터 반영) */
+    /** 로그탐색 요약 Top 공격 출발지 IP (현재 필터 반영) */
     @GetMapping("/events/top-src")
     public List<CountItem> eventsTopSrc(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
@@ -89,7 +80,7 @@ public class DashboardController {
         return service.overview();
     }
 
-    /** ④ 시계열 이벤트 추이 (interval = minute|hour|day) */
+    /** 시계열 이벤트 추이 (interval = minute|hour|day) */
     @GetMapping("/stats/timeseries")
     public List<TimePoint> timeseries(
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) OffsetDateTime from,
@@ -99,13 +90,13 @@ public class DashboardController {
         return service.timeseries(from, to, interval, eventType);
     }
 
-    /** ② 트래픽·프로토콜 통계 */
+    /** 트래픽·프로토콜 통계 */
     @GetMapping("/stats/protocols")
     public List<CountItem> protocols() {
         return service.protocols();
     }
 
-    /** ③ Top Talkers (by = src|dest|pair) */
+    /** Top Talkers (by = src|dest|pair) */
     @GetMapping("/stats/top-talkers")
     public List<TalkerDto> topTalkers(
             @RequestParam(defaultValue = "pair") String by,
@@ -113,7 +104,7 @@ public class DashboardController {
         return service.topTalkers(by, limit);
     }
 
-    /** ⑤ 시그니처별 집계 */
+    /** 시그니처별 집계 */
     @GetMapping("/stats/signatures")
     public List<CountItem> signatures(@RequestParam(defaultValue = "10") int limit) {
         return service.signatures(limit);
@@ -131,7 +122,7 @@ public class DashboardController {
         return service.topPorts(limit);
     }
 
-    /** ① Alert 모니터링 (sort=recent|severity, severity=1|2|3 필터 옵션) */
+    /** Alert 모니터링 (sort=recent|severity, severity=1|2|3 필터 옵션) */
     @GetMapping("/alerts/recent")
     public List<AlertDto> recentAlerts(@RequestParam(defaultValue = "20") int limit,
                                        @RequestParam(defaultValue = "recent") String sort,
@@ -155,6 +146,8 @@ public class DashboardController {
 @RestControllerAdvice
 class ApiExceptionHandler {
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ApiExceptionHandler.class);
+
     /** 없는 경로 → 404 (예: 백엔드 미재빌드로 새 엔드포인트가 아직 없을 때) */
     @ExceptionHandler(NoHandlerFoundException.class)
     ResponseEntity<Map<String, Object>> notFound(NoHandlerFoundException e) {
@@ -176,11 +169,12 @@ class ApiExceptionHandler {
                 "error", "unauthorized", "message", String.valueOf(e.getMessage())));
     }
 
-    /** 그 외 (DB 오류, payload 캐스팅 실패 등) → 500 */
+    /** 그 외 (DB 오류 등) → 500. 상세는 서버 로그에만 남기고, 클라이언트엔 일반 메시지. */
     @ExceptionHandler(Exception.class)
     ResponseEntity<Map<String, Object>> handle(Exception e) {
+        log.error("Unhandled API error", e);
         return ResponseEntity.status(500).body(Map.of(
-                "error", e.getClass().getSimpleName(),
-                "message", String.valueOf(e.getMessage())));
+                "error", "server_error",
+                "message", "서버 처리 중 오류가 발생했습니다."));
     }
 }

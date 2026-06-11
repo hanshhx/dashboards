@@ -76,7 +76,7 @@
         </where>
     </sql>
 
-    <!-- ⑥ 검색·필터 + 로그 테이블 (payload 제외, signature만 노출) -->
+    <!-- 검색·필터 + 로그 테이블 (payload 제외, signature만 노출) -->
     <select id="findEvents" resultMap="eventRM">
         SELECT id, "timestamp", event_type,
                src_ip::text  AS src_ip,  src_port,
@@ -99,7 +99,7 @@
         SELECT payload_json::text FROM ${t} WHERE id::text = #{id} LIMIT 1
     </select>
 
-    <!-- 로그탐색 요약 ① 시각별 로그 개수 (iv = minute|hour|day, 서비스 검증) -->
+    <!-- 로그탐색 요약 시각별 로그 개수 (iv = minute|hour|day, 서비스 검증) -->
     <select id="eventsHistogram" resultMap="countRM">
         SELECT to_char(date_trunc('${iv}', "timestamp"::timestamptz), 'YYYY-MM-DD HH24:MI') AS k,
                count(*) AS cnt
@@ -109,7 +109,7 @@
         ORDER BY date_trunc('${iv}', "timestamp"::timestamptz)
     </select>
 
-    <!-- 로그탐색 요약 ② Top 공격 출발지 IP -->
+    <!-- 로그탐색 요약 Top 공격 출발지 IP -->
     <select id="eventsTopSrc" resultMap="countRM">
         SELECT src_ip::text AS k, count(*) AS cnt
         FROM ${t}
@@ -134,7 +134,7 @@
         GROUP BY k ORDER BY k
     </select>
 
-    <!-- ④ 시계열 이벤트 추이 (iv = minute|hour|day, 서비스에서 검증) -->
+    <!-- 시계열 이벤트 추이 (iv = minute|hour|day, 서비스에서 검증) -->
     <select id="timeseries" resultMap="timePointRM">
         SELECT date_trunc('${iv}', "timestamp"::timestamptz) AS bucket, event_type, count(*) AS cnt
         FROM ${t}
@@ -147,13 +147,13 @@
         ORDER BY bucket
     </select>
 
-    <!-- ② 트래픽·프로토콜 통계 (TCP·HTTP·DNS·TLS …) -->
+    <!-- 트래픽·프로토콜 통계 (TCP·HTTP·DNS·TLS 등) -->
     <select id="protocols" resultMap="countRM">
         SELECT COALESCE((payload_json::jsonb)->>'app_proto', lower(proto), 'unknown') AS k, count(*) AS cnt
         FROM ${t} GROUP BY k ORDER BY cnt DESC
     </select>
 
-    <!-- ③ Top Talkers -->
+    <!-- Top Talkers -->
     <select id="topTalkersPair" resultMap="talkerRM">
         SELECT src_ip::text AS src_ip, dest_ip::text AS dest_ip, count(*) AS cnt
         FROM ${t} GROUP BY src_ip, dest_ip ORDER BY cnt DESC LIMIT #{limit}
@@ -167,7 +167,7 @@
         FROM ${t} GROUP BY dest_ip ORDER BY cnt DESC LIMIT #{limit}
     </select>
 
-    <!-- ⑤ 시그니처별 집계 -->
+    <!-- 시그니처별 집계 -->
     <select id="signatures" resultMap="countRM">
         SELECT (payload_json::jsonb)->'alert'->>'signature' AS k, count(*) AS cnt
         FROM ${t}
@@ -191,7 +191,7 @@
         GROUP BY dest_port ORDER BY cnt DESC LIMIT #{limit}
     </select>
 
-    <!-- ① Alert 모니터링 (최근순/심각도순 + 심각도 필터) -->
+    <!-- Alert 모니터링 (최근순/심각도순 + 심각도 필터) -->
     <select id="recentAlerts" resultMap="alertRM">
         SELECT id, "timestamp",
                src_ip::text  AS src_ip,  src_port,

@@ -24,7 +24,7 @@ public class EventService {
         this.table = table;
     }
 
-    /** ⑥ 검색·필터 + 페이지네이션 */
+    /** 검색·필터 + 페이지네이션 */
     public PageResponse<EventDto> events(OffsetDateTime from, OffsetDateTime to,
                                          String eventType, String ip, String q,
                                          int page, int size) {
@@ -40,7 +40,7 @@ public class EventService {
         return new EventPayloadDto(id, mapper.findPayloadById(table, String.valueOf(id)));
     }
 
-    /** 로그탐색 요약 ① 시각별 로그 개수 (interval 화이트리스트) */
+    /** 로그탐색 요약 시각별 로그 개수 (interval 화이트리스트) */
     public List<CountItem> eventsHistogram(OffsetDateTime from, OffsetDateTime to,
                                            String eventType, String ip, String q, String interval) {
         String iv = switch (interval == null ? "hour" : interval) {
@@ -51,7 +51,7 @@ public class EventService {
         return mapper.eventsHistogram(table, iv, from, to, eventType, ip, q);
     }
 
-    /** 로그탐색 요약 ② Top 공격 출발지 IP */
+    /** 로그탐색 요약 Top 공격 출발지 IP */
     public List<CountItem> eventsTopSrc(OffsetDateTime from, OffsetDateTime to,
                                         String eventType, String ip, String q, int limit) {
         return mapper.eventsTopSrc(table, from, to, eventType, ip, q, Math.min(Math.max(limit, 1), 100));
@@ -67,7 +67,7 @@ public class EventService {
                 mapper.bySeverity(table));
     }
 
-    /** ④ 시계열 이벤트 추이 (interval 화이트리스트) */
+    /** 시계열 이벤트 추이 (interval 화이트리스트) */
     public List<TimePoint> timeseries(OffsetDateTime from, OffsetDateTime to, String interval, String eventType) {
         String iv = switch (interval == null ? "hour" : interval) {
             case "minute" -> "minute";
@@ -77,12 +77,12 @@ public class EventService {
         return mapper.timeseries(table, iv, from, to, eventType);
     }
 
-    /** ② 트래픽·프로토콜 통계 */
+    /** 트래픽·프로토콜 통계 */
     public List<CountItem> protocols() {
         return mapper.protocols(table);
     }
 
-    /** ③ Top Talkers (by=src|dest|pair) */
+    /** Top Talkers (by=src|dest|pair) */
     public List<TalkerDto> topTalkers(String by, int limit) {
         int l = Math.min(Math.max(limit, 1), 100);
         return switch (by == null ? "pair" : by) {
@@ -92,7 +92,7 @@ public class EventService {
         };
     }
 
-    /** ⑤ 시그니처별 집계 */
+    /** 시그니처별 집계 */
     public List<CountItem> signatures(int limit) {
         return mapper.signatures(table, Math.min(Math.max(limit, 1), 100));
     }
@@ -107,7 +107,7 @@ public class EventService {
         return mapper.topPorts(table, Math.min(Math.max(limit, 1), 100));
     }
 
-    /** ① Alert 모니터링 (sort=recent|severity, severity 필터 옵션) */
+    /** Alert 모니터링 (sort=recent|severity, severity 필터 옵션) */
     public List<AlertDto> recentAlerts(int limit, String sort, Integer severity) {
         String s = "severity".equals(sort) ? "severity" : "recent";
         return mapper.recentAlerts(table, Math.min(Math.max(limit, 1), 200), s, severity);

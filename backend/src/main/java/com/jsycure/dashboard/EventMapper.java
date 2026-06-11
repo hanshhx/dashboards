@@ -33,12 +33,12 @@ public interface EventMapper {
     /** payload 단건 (상세 모달 / 다운로드) — id는 text 비교라 String으로 전달, payload_json 텍스트 반환 */
     String findPayloadById(@Param("t") String t, @Param("id") String id);
 
-    /** 로그탐색 요약 ① 시각별 로그 개수 (필터 반영) */
+    /** 로그탐색 요약 시각별 로그 개수 (필터 반영) */
     List<CountItem> eventsHistogram(@Param("t") String t, @Param("iv") String iv,
                                     @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to,
                                     @Param("etype") String etype, @Param("ip") String ip, @Param("q") String q);
 
-    /** 로그탐색 요약 ② Top 공격 출발지 IP (필터 반영) */
+    /** 로그탐색 요약 Top 공격 출발지 IP (필터 반영) */
     List<CountItem> eventsTopSrc(@Param("t") String t,
                                  @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to,
                                  @Param("etype") String etype, @Param("ip") String ip, @Param("q") String q,
