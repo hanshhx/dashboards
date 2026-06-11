@@ -1,33 +1,22 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Crosshair, Search } from 'lucide-react';
 import { Shell } from '@/components/Shell';
-import { Card, Kpi, Skeleton, SEV_COLOR, SEV_LABEL, fmt } from '@/components/ui';
+import { Card, Kpi, Skeleton, SevBars, fmt } from '@/components/ui';
 import { MiniBars } from '@/components/charts';
 import { useIpProfile, useTalkers } from '@/lib/api';
-import type { CountItem } from '@/lib/types';
-
-function SevChips({ data }: { data: CountItem[] }) {
-  if (!data?.length) return <span className="text-sm text-slate-400">표시할 데이터가 없습니다</span>;
-  return (
-    <div className="flex gap-2 flex-wrap">
-      {data.map((d) => {
-        const k = d.key ?? '';
-        const c = SEV_COLOR[k] ?? '#64748b';
-        return (
-          <span key={k} className="text-xs px-3 py-1.5 rounded-lg font-medium" style={{ background: `${c}1a`, color: c }}>
-            {SEV_LABEL[k] ?? `위험도 ${k}`}: {fmt(d.count)}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 
 export default function IpAnalysisPage() {
   const [ip, setIp] = useState('');
   const [input, setInput] = useState('');
+
+  // 다른 페이지에서 ?ip=... 로 들어오면 자동 조회 (시그니처 분석 → IP 분석 연결)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get('ip');
+    if (q) { setIp(q); setInput(q); }
+  }, []);
+
   const top = useTalkers('src', 30, true);
   const prof = useIpProfile(ip || null);
   const p = prof.data;
@@ -70,9 +59,12 @@ export default function IpAnalysisPage() {
             <Kpi label="출발지로 (공격 시도)" value={fmt(p.asSrc)} accent="#ef4444" />
             <Kpi label="목적지로 (피격)" value={fmt(p.asDest)} />
           </div>
-          <Card title="심각도 분포" className="mt-4"><SevChips data={p.bySeverity} /></Card>
+          <Card title="위험도 분포" className="mt-4"><SevBars data={p.bySeverity} /></Card>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
-            <Card title="시그니처 Top" sub="이 IP가 유발한 탐지 룰"><MiniBars data={p.topSignatures} color="#f97316" maxH={280} /></Card>
+            <Card title="시그니처 Top" sub="이 IP가 유발한 탐지 룰 (클릭 → 시그니처 분석)">
+              <MiniBars data={p.topSignatures} color="#f97316" maxH={280}
+                hrefFor={(sig) => `/analysis/signature?sig=${encodeURIComponent(sig)}`} />
+            </Card>
             <Card title="대상 포트 Top" sub="노린 목적지 포트"><MiniBars data={p.topPorts} color="#f59e0b" maxH={280} /></Card>
             <Card title="시간선" sub="시간대별 활동"><MiniBars data={p.timeline} color="#2563eb" maxH={280} /></Card>
           </div>

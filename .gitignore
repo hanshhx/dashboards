@@ -13,3 +13,6 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# TS 빌드 캐시 (머신별 산출물)
+*.tsbuildinfo

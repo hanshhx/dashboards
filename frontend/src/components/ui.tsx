@@ -1,4 +1,5 @@
 import { ReactNode } from 'react';
+import type { CountItem } from '@/lib/types';
 
 /* ────────────────────────────────────────────────────────────
    색 토큰 — 앱 전체 색은 여기 한 곳에서만 정의한다.
@@ -86,6 +87,30 @@ export function Badge({ text, color }: { text: string; color: string }) {
 // 빈 상태 / 로딩 — 문구·형식 통일.
 export function Empty({ label = '표시할 데이터가 없습니다' }: { label?: string }) {
   return <div className="py-8 text-center text-sm text-slate-400">{label}</div>;
+}
+
+// 위험도 분포 — 위험도(1=높음)별 색 구분 막대. 한 등급만 있어도, 여러 등급이어도 동일하게 표시.
+export function SevBars({ data }: { data: CountItem[] }) {
+  if (!data?.length) return <Empty label="위험도 데이터가 없습니다" />;
+  const rows = [...data].sort((a, b) => (a.key ?? '').localeCompare(b.key ?? ''));
+  const max = Math.max(...rows.map((d) => d.count), 1);
+  return (
+    <div className="space-y-2">
+      {rows.map((d) => {
+        const k = d.key ?? '';
+        const c = SEV_COLOR[k] ?? '#64748b';
+        return (
+          <div key={k} className="flex items-center gap-2 text-xs">
+            <span className="w-10 shrink-0 font-medium" style={{ color: c }}>{SEV_LABEL[k] ?? `위험도 ${k}`}</span>
+            <div className="flex-1 h-3.5 rounded bg-slate-100 dark:bg-white/5 overflow-hidden">
+              <div className="h-full rounded" style={{ width: `${(d.count / max) * 100}%`, background: c }} />
+            </div>
+            <span className="w-12 shrink-0 text-right font-medium tabular-nums">{d.count.toLocaleString()}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
 }
 
 export function Spinner({ size = 16 }: { size?: number }) {
