@@ -1,0 +1,184 @@
+// 학습 페이지용 설명 그림(SVG). 사진 대신 직접 그린 다이어그램.
+// 색은 글자색(currentColor)을 상속하므로 라이트/다크 모두에서 자연스럽게 보인다.
+// 강조/위험 색만 명시한다. (브랜드 블루 #2563eb)
+import type { ReactNode } from 'react';
+import type { ArtKey } from '@/lib/learn';
+
+type Tone = 'base' | 'accent' | 'danger' | 'warn' | 'ok';
+const TONE: Record<Tone, { c: string }> = {
+  base: { c: 'currentColor' },
+  accent: { c: '#2563eb' },
+  danger: { c: '#dc2626' },
+  warn: { c: '#ea580c' },
+  ok: { c: '#16a34a' },
+};
+
+function Box({
+  x, y, w, h, label, sub, tone = 'base', fs = 12,
+}: { x: number; y: number; w: number; h: number; label: string; sub?: string; tone?: Tone; fs?: number }) {
+  const c = TONE[tone].c;
+  const cx = x + w / 2;
+  return (
+    <g>
+      <rect x={x} y={y} width={w} height={h} rx={10}
+        fill={c} fillOpacity={tone === 'base' ? 0.04 : 0.1}
+        stroke={c} strokeOpacity={tone === 'base' ? 0.25 : 0.6} />
+      <text x={cx} y={sub ? y + h / 2 - 6 : y + h / 2} textAnchor="middle" dominantBaseline="middle"
+        fontSize={fs} fontWeight={500} fill={c}>{label}</text>
+      {sub && (
+        <text x={cx} y={y + h / 2 + 11} textAnchor="middle" dominantBaseline="middle"
+          fontSize={10.5} fill={c} opacity={0.7}>{sub}</text>
+      )}
+    </g>
+  );
+}
+
+function Arrow({
+  from, to, label, tone = 'base', dash,
+}: { from: [number, number]; to: [number, number]; label?: string; tone?: Tone; dash?: boolean }) {
+  const c = TONE[tone].c;
+  const [x1, y1] = from, [x2, y2] = to;
+  const a = Math.atan2(y2 - y1, x2 - x1), h = 6;
+  const p1 = `${x2 - h * Math.cos(a - 0.5)},${y2 - h * Math.sin(a - 0.5)}`;
+  const p2 = `${x2 - h * Math.cos(a + 0.5)},${y2 - h * Math.sin(a + 0.5)}`;
+  return (
+    <g>
+      <line x1={x1} y1={y1} x2={x2} y2={y2} stroke={c} strokeWidth={1.5}
+        strokeOpacity={0.8} strokeDasharray={dash ? '4 3' : undefined} />
+      <polygon points={`${x2},${y2} ${p1} ${p2}`} fill={c} fillOpacity={0.8} />
+      {label && (
+        <text x={(x1 + x2) / 2} y={(y1 + y2) / 2 - 5} textAnchor="middle"
+          fontSize={10.5} fill={c} opacity={0.85}>{label}</text>
+      )}
+    </g>
+  );
+}
+
+function Svg({ vb, children }: { vb: string; children: ReactNode }) {
+  return (
+    <svg viewBox={vb} width="100%" xmlns="http://www.w3.org/2000/svg"
+      style={{ maxHeight: 240, display: 'block' }} role="img">
+      {children}
+    </svg>
+  );
+}
+
+function IntroArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={48} w={120} h={50} label="화상회의·통화" sub="Google Meet 등" />
+      <Arrow from={[136, 73]} to={[196, 73]} />
+      <Box x={196} y={48} w={120} h={50} label="STUN 트래픽" sub="3478·5349 포트" tone="accent" />
+      <Arrow from={[316, 73]} to={[372, 73]} />
+      <Box x={372} y={48} w={96} h={50} label="보안 센서" sub="Suricata 기록" />
+      <Box x={140} y={112} w={200} h={28} label="‘ET INFO’ = 참고용 (공격 아님)" tone="ok" fs={11} />
+    </Svg>
+  );
+}
+
+function FlowArt() {
+  return (
+    <Svg vb="0 0 480 160">
+      <Box x={20} y={36} w={120} h={42} label="내 기기" sub="192.168.0.21 (사설)" />
+      <Box x={20} y={86} w={120} h={30} label="공유기(NAT)" fs={11} />
+      <Box x={340} y={36} w={120} h={42} label="STUN 서버" />
+      <Arrow from={[140, 50]} to={[340, 50]} label="① Binding Request — 내 주소?" tone="accent" dash />
+      <Arrow from={[340, 66]} to={[140, 66]} label="② 응답: 203.0.113.5:54021" tone="accent" />
+      <Box x={20} y={126} w={440} h={28} label="이 ‘반사 주소(공인 IP·포트)’를 상대에게 알려 직접 연결에 씁니다" tone="accent" fs={11} />
+    </Svg>
+  );
+}
+
+function DecisionArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={53} w={110} h={44} label="STUN 탐지" tone="accent" />
+      <Arrow from={[126, 66]} to={[232, 40]} label="정상(화상회의)" tone="ok" />
+      <Box x={232} y={24} w={232} h={38} label="꺼도 됨 · 억제(suppress)" tone="ok" />
+      <Arrow from={[126, 86]} to={[232, 116]} label="서버 구간 대량" tone="warn" />
+      <Box x={232} y={100} w={232} h={38} label="확인: 출발지·빈도 점검" tone="warn" />
+    </Svg>
+  );
+}
+
+function SshScanArt() {
+  return (
+    <Svg vb="0 0 480 160">
+      <Box x={16} y={58} w={120} h={44} label="외부 IP" sub="공격자" tone="danger" />
+      <Box x={344} y={16} w={120} h={32} label="호스트 A : 22" fs={11} />
+      <Box x={344} y={62} w={120} h={32} label="호스트 B : 22" fs={11} />
+      <Box x={344} y={108} w={120} h={32} label="호스트 C : 22" fs={11} />
+      <Arrow from={[136, 70]} to={[344, 34]} tone="danger" dash />
+      <Arrow from={[136, 80]} to={[344, 78]} label="포트 22 열렸나?" tone="danger" dash />
+      <Arrow from={[136, 90]} to={[344, 122]} tone="danger" dash />
+    </Svg>
+  );
+}
+
+function SqliArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={46} w={184} h={52} label="입력칸 (로그인·검색)" sub="' OR '1'='1" tone="danger" />
+      <Arrow from={[200, 72]} to={[306, 72]} label="명령 주입" tone="danger" />
+      <g>
+        <ellipse cx={388} cy={52} rx={56} ry={11} fill="#dc2626" fillOpacity={0.1} stroke="#dc2626" strokeOpacity={0.6} />
+        <path d="M332,52 v44 a56,11 0 0 0 112,0 v-44" fill="#dc2626" fillOpacity={0.1} stroke="#dc2626" strokeOpacity={0.6} />
+        <text x={388} y={82} textAnchor="middle" fontSize={12} fontWeight={500} fill="#dc2626">데이터베이스</text>
+      </g>
+      <Box x={16} y={112} w={448} h={28} label="성공하면 회원정보·비밀번호가 통째로 유출" tone="danger" fs={11} />
+    </Svg>
+  );
+}
+
+function TrojanArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={50} w={140} h={46} label="감염된 PC" sub="내부" tone="danger" />
+      <Arrow from={[156, 73]} to={[328, 73]} label="체크인: ‘나 준비됐다’ (주기 반복)" tone="danger" dash />
+      <Box x={328} y={50} w={136} h={46} label="공격자 서버(C2)" tone="danger" />
+      <Box x={16} y={112} w={448} h={28} label="이미 내부 감염이라는 강한 신호 → PC 분리·점검" tone="danger" fs={11} />
+    </Svg>
+  );
+}
+
+function CleartextArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={36} w={110} h={42} label="PC" />
+      <Arrow from={[126, 57]} to={[352, 57]} label="아이디 / 비밀번호 (평문)" tone="danger" />
+      <Box x={352} y={36} w={112} h={42} label="서버" />
+      <Arrow from={[240, 86]} to={[240, 78]} tone="danger" dash />
+      <Box x={200} y={86} w={80} h={24} label="도청 가능" tone="danger" fs={10.5} />
+      <Box x={16} y={118} w={448} h={26} label="암호화된 연결(HTTPS·SSH)로 바꿔야 안전" tone="ok" fs={11} />
+    </Svg>
+  );
+}
+
+const MAP: Record<ArtKey, () => JSX.Element> = {
+  'stun-intro': IntroArt,
+  'stun-flow': FlowArt,
+  'stun-decision': DecisionArt,
+  'ssh-scan': SshScanArt,
+  'sqli': SqliArt,
+  'trojan': TrojanArt,
+  'cleartext': CleartextArt,
+};
+
+export const ART_CAPTION: Record<ArtKey, string> = {
+  'stun-intro': '화상회의 같은 정상 통신이 STUN 트래픽을 만들고, 센서가 그것을 ‘정보성’으로 기록합니다.',
+  'stun-flow': '기기가 STUN 서버에 물어 ‘바깥에서 보이는 자기 주소’를 받아오는 과정.',
+  'stun-decision': '정상이면 끄거나 억제, 비정상 정황이면 출발지·빈도를 확인합니다.',
+  'ssh-scan': '한 외부 IP가 여러 대상의 22번 포트가 열렸는지 훑어보는 정찰.',
+  'sqli': '입력칸에 조작 명령을 끼워 넣어 데이터베이스를 노리는 공격.',
+  'trojan': '감염된 PC가 공격자 서버에 주기적으로 보내는 신호.',
+  'cleartext': '비밀번호가 평문으로 흘러 중간에서 그대로 보일 수 있는 상태.',
+};
+
+export function LearnArt({ art, className }: { art: ArtKey; className?: string }) {
+  const C = MAP[art];
+  return (
+    <div className={className ?? 'text-slate-500 dark:text-slate-400'}>
+      <C />
+    </div>
+  );
+}

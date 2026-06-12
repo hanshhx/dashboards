@@ -4,12 +4,13 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState, ReactNode } from 'react';
-import { LayoutDashboard, ListFilter, Users, Moon, Sun, LogOut, Lock, Crosshair, Fingerprint, ScrollText } from 'lucide-react';
+import { LayoutDashboard, ListFilter, Users, Moon, Sun, LogOut, Lock, Crosshair, Fingerprint, ScrollText, GraduationCap } from 'lucide-react';
 import { Brand } from './Brand';
 import { useAuth, hasRole, ROLE_LABEL, type Role } from '@/lib/auth';
 
 const NAV: { href: string; label: string; icon: typeof LayoutDashboard; min: Role }[] = [
   { href: '/', label: '개요', icon: LayoutDashboard, min: 'GENERAL' },
+  { href: '/learn', label: '학습하기', icon: GraduationCap, min: 'GENERAL' },
   { href: '/events', label: '로그 탐색', icon: ListFilter, min: 'STAFF' },
   { href: '/analysis/ip', label: 'IP 분석', icon: Crosshair, min: 'STAFF' },
   { href: '/analysis/signature', label: '시그니처 분석', icon: Fingerprint, min: 'STAFF' },
@@ -53,7 +54,7 @@ export function Shell({
         </div>
         <nav className="flex-1 p-3 space-y-1 text-sm">
           {nav.map(({ href, label, icon: Icon }) => {
-            const active = path === href;
+            const active = href === '/' ? path === '/' : path.startsWith(href);
             return (
               <Link key={href} href={href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg ${
