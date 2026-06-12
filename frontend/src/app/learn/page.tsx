@@ -1,36 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { GraduationCap, ListChecks, CheckCircle2, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ExternalLink } from 'lucide-react';
 import { Shell } from '@/components/Shell';
+import { LearnTabs } from '@/components/LearnTabs';
 import { SEV_COLOR, SEV_LABEL, fmt } from '@/components/ui';
 import { LearnArt, ART_CAPTION } from '@/components/learn-art';
 import { LEARN_SIGS } from '@/lib/learn';
-
-// 두 학습 페이지(설명/퀴즈) 공통 상단 탭
-export function LearnTabs() {
-  const path = usePathname();
-  const tab = (href: string, label: string, Icon: typeof GraduationCap) => {
-    const on = path === href;
-    return (
-      <Link href={href}
-        className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium ${
-          on ? 'bg-accent-600 text-white'
-             : 'bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'
-        }`}>
-        <Icon size={16} />{label}
-      </Link>
-    );
-  };
-  return (
-    <div className="flex gap-2">
-      {tab('/learn', '시그니처 설명', GraduationCap)}
-      {tab('/learn/quiz', '퀴즈', ListChecks)}
-    </div>
-  );
-}
 
 const STUN_SOURCES = [
   { label: 'Emerging Threats 공식 안내', url: 'https://community.emergingthreats.net/t/if-you-get-the-alert-et-info-session-traversal-utilities-for-nat-stun-binding-request/751' },

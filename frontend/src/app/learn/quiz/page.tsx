@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { RotateCcw } from 'lucide-react';
 import { Shell } from '@/components/Shell';
-import { LearnTabs } from '../page';
+import { LearnTabs } from '@/components/LearnTabs';
 import { QUIZ, type QuizQ } from '@/lib/learn';
 
 const LEVEL_COLOR: Record<QuizQ['level'], string> = { 쉬움: '#16a34a', 보통: '#ea580c', 어려움: '#dc2626' };
