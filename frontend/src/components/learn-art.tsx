@@ -154,6 +154,106 @@ function CleartextArt() {
   );
 }
 
+function OvLayoutArt() {
+  return (
+    <Svg vb="0 0 480 170">
+      <Box x={16} y={16} w={104} h={32} label="총 이벤트" fs={11} />
+      <Box x={128} y={16} w={104} h={32} label="경보" tone="danger" fs={11} />
+      <Box x={240} y={16} w={104} h={32} label="출발지 IP" fs={11} />
+      <Box x={352} y={16} w={112} h={32} label="유형 수" fs={11} />
+      <Box x={16} y={58} w={214} h={48} label="추이·위험도·프로토콜" sub="그래프" tone="accent" fs={11} />
+      <Box x={242} y={58} w={222} h={48} label="시그니처·포트·IP 순위" fs={11} />
+      <Box x={16} y={116} w={448} h={40} label="경보 모니터링" sub="위험순·최근순 정렬 + 위험도 필터" fs={11} />
+    </Svg>
+  );
+}
+
+function OvSeverityArt() {
+  const rows = [
+    { l: '높음', c: '#dc2626', w: 342 },
+    { l: '중간', c: '#ea580c', w: 209 },
+    { l: '낮음', c: '#ca8a04', w: 114 },
+    { l: '정보', c: '#64748b', w: 46 },
+  ];
+  return (
+    <Svg vb="0 0 480 150">
+      {rows.map((r, i) => {
+        const y = 22 + i * 32;
+        return (
+          <g key={i}>
+            <text x={16} y={y + 13} fontSize={12} fontWeight={500} fill={r.c}>{r.l}</text>
+            <rect x={70} y={y} width={388} height={18} rx={4} fill="currentColor" fillOpacity={0.06} />
+            <rect x={70} y={y} width={r.w} height={18} rx={4} fill={r.c} fillOpacity={0.85} />
+          </g>
+        );
+      })}
+    </Svg>
+  );
+}
+
+function EvFlowArt() {
+  return (
+    <Svg vb="0 0 480 120">
+      <Box x={16} y={22} w={200} h={28} label="통합 검색 (부분 일치)" fs={11} />
+      <Box x={16} y={58} w={200} h={44} label="IP 정확 · 유형 · 기간 필터" tone="accent" fs={11} />
+      <Arrow from={[216, 70]} to={[300, 70]} label="좁히기" tone="accent" />
+      <Box x={300} y={44} w={164} h={52} label="원하는 로그만" sub="건수 즉시 갱신" fs={11} />
+    </Svg>
+  );
+}
+
+function EvExportArt() {
+  return (
+    <Svg vb="0 0 480 120">
+      <Box x={16} y={40} w={130} h={42} label="필터 결과" fs={11} />
+      <Arrow from={[146, 54]} to={[244, 40]} />
+      <Box x={244} y={22} w={86} h={28} label="CSV" tone="ok" fs={11} />
+      <Arrow from={[146, 70]} to={[244, 84]} />
+      <Box x={244} y={72} w={86} h={28} label="JSON" tone="ok" fs={11} />
+      <Box x={354} y={40} w={110} h={42} label="원문은 관리자만" tone="warn" fs={11} />
+    </Svg>
+  );
+}
+
+function IpProfileArt() {
+  return (
+    <Svg vb="0 0 480 140">
+      <Box x={16} y={50} w={116} h={44} label="IP 한 개" tone="accent" />
+      <Arrow from={[132, 64]} to={[196, 38]} />
+      <Box x={196} y={20} w={150} h={30} label="공격 시도 / 피격" tone="danger" fs={11} />
+      <Arrow from={[132, 72]} to={[196, 74]} />
+      <Box x={196} y={60} w={150} h={30} label="위험도 분포" fs={11} />
+      <Arrow from={[132, 80]} to={[196, 110]} />
+      <Box x={196} y={98} w={150} h={30} label="시그니처·포트·시간선" fs={11} />
+    </Svg>
+  );
+}
+
+function SigProfileArt() {
+  return (
+    <Svg vb="0 0 480 140">
+      <Box x={16} y={50} w={132} h={44} label="규칙(시그니처) 한 개" tone="accent" fs={11} />
+      <Arrow from={[148, 64]} to={[206, 38]} />
+      <Box x={206} y={20} w={150} h={30} label="총 건수 · 위험도" fs={11} />
+      <Arrow from={[148, 72]} to={[206, 74]} />
+      <Box x={206} y={60} w={150} h={30} label="유발 IP Top" tone="danger" fs={11} />
+      <Arrow from={[148, 80]} to={[206, 110]} />
+      <Box x={206} y={98} w={150} h={30} label="포트 · 시간선" fs={11} />
+    </Svg>
+  );
+}
+
+function CrossArt() {
+  return (
+    <Svg vb="0 0 480 130">
+      <Box x={36} y={48} w={170} h={46} label="IP 분석" tone="accent" />
+      <Box x={274} y={48} w={170} h={46} label="시그니처 분석" tone="accent" />
+      <Arrow from={[206, 62]} to={[274, 62]} label="시그니처 클릭" />
+      <Arrow from={[274, 82]} to={[206, 82]} label="출발지 IP 클릭" />
+    </Svg>
+  );
+}
+
 const MAP: Record<ArtKey, () => JSX.Element> = {
   'stun-intro': IntroArt,
   'stun-flow': FlowArt,
@@ -162,6 +262,13 @@ const MAP: Record<ArtKey, () => JSX.Element> = {
   'sqli': SqliArt,
   'trojan': TrojanArt,
   'cleartext': CleartextArt,
+  'ov-layout': OvLayoutArt,
+  'ov-severity': OvSeverityArt,
+  'ev-flow': EvFlowArt,
+  'ev-export': EvExportArt,
+  'ip-profile': IpProfileArt,
+  'sig-profile': SigProfileArt,
+  'cross': CrossArt,
 };
 
 export const ART_CAPTION: Record<ArtKey, string> = {
@@ -172,6 +279,13 @@ export const ART_CAPTION: Record<ArtKey, string> = {
   'sqli': '입력칸에 조작 명령을 끼워 넣어 데이터베이스를 노리는 공격.',
   'trojan': '감염된 PC가 공격자 서버에 주기적으로 보내는 신호.',
   'cleartext': '비밀번호가 평문으로 흘러 중간에서 그대로 보일 수 있는 상태.',
+  'ov-layout': '개요는 위에서 아래로 ‘KPI 숫자 → 그래프·순위 → 개별 경보’ 순으로 봅니다.',
+  'ov-severity': '경보 위험도는 높음(가장 심각)·중간·낮음·정보 4단계. 색이 진할수록 위험합니다.',
+  'ev-flow': '통합 검색과 정확한 필터로 원하는 로그만 추려, 결과 건수가 바로 갱신됩니다.',
+  'ev-export': '추린 결과는 CSV·JSON으로 내보내고, 원문(payload)은 관리자만 볼 수 있습니다.',
+  'ip-profile': '주소 하나의 공격 시도·피격·위험도·유발 규칙·포트·시간선을 한 장에.',
+  'sig-profile': '규칙 하나가 어디서·어디를·언제 얼마나 잡았는지 한 장에.',
+  'cross': '규칙 ↔ IP를 클릭으로 오가며 꼬리에 꼬리를 무는 추적.',
 };
 
 export function LearnArt({ art, className }: { art: ArtKey; className?: string }) {

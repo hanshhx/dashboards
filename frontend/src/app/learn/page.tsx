@@ -4,9 +4,9 @@ import { useState } from 'react';
 import { CheckCircle2, ExternalLink } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { LearnTabs } from '@/components/LearnTabs';
-import { SEV_COLOR, SEV_LABEL, fmt } from '@/components/ui';
+import { SEV_COLOR, SEV_LABEL } from '@/components/ui';
 import { LearnArt, ART_CAPTION } from '@/components/learn-art';
-import { LEARN_SIGS } from '@/lib/learn';
+import { LEARN_ITEMS } from '@/lib/learn';
 
 const STUN_SOURCES = [
   { label: 'Emerging Threats 공식 안내', url: 'https://community.emergingthreats.net/t/if-you-get-the-alert-et-info-session-traversal-utilities-for-nat-stun-binding-request/751' },
@@ -15,12 +15,13 @@ const STUN_SOURCES = [
   { label: 'RFC 8489', url: 'https://datatracker.ietf.org/doc/html/rfc8489' },
 ];
 
+const GROUPS = ['탐지 시그니처', '대시보드 화면'] as const;
+
 export default function LearnPage() {
-  const [id, setId] = useState(LEARN_SIGS[0].id);
+  const [id, setId] = useState(LEARN_ITEMS[0].id);
   const [mode, setMode] = useState<'full' | 'summary'>('full');
-  const sig = LEARN_SIGS.find((s) => s.id === id)!;
-  const c = SEV_COLOR[sig.riskKey];
-  const riskLabel = SEV_LABEL[sig.riskKey];
+  const item = LEARN_ITEMS.find((s) => s.id === id)!;
+  const risk = item.riskKey ? { c: SEV_COLOR[item.riskKey], label: SEV_LABEL[item.riskKey] } : null;
 
   const toggleBtn = (m: 'full' | 'summary', label: string) => (
     <button onClick={() => setMode(m)}
@@ -34,26 +35,32 @@ export default function LearnPage() {
       <LearnTabs />
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4 mt-4">
-        {/* 시그니처 목록 */}
-        <div className="space-y-2">
-          <div className="text-xs text-slate-500 px-1">탐지 시그니처 — 클릭해서 배우기</div>
-          {LEARN_SIGS.map((s) => {
-            const sc = SEV_COLOR[s.riskKey];
-            const on = s.id === id;
-            return (
-              <button key={s.id} onClick={() => { setId(s.id); setMode('full'); }}
-                className={`w-full text-left rounded-xl border p-3 transition ${
-                  on ? 'border-accent-600 bg-accent-600/5'
-                     : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/5'
-                }`}>
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sc }} />
-                  <span className="flex-1 min-w-0 truncate text-sm font-medium">{s.name}</span>
-                </div>
-                <div className="mt-1 text-xs text-slate-500 pl-4">{s.category} · {fmt(s.count)}건</div>
-              </button>
-            );
-          })}
+        {/* 목록 — 그룹별 */}
+        <div className="space-y-4">
+          {GROUPS.map((g) => (
+            <div key={g} className="space-y-2">
+              <div className="text-xs font-medium text-slate-500 px-1">{g}</div>
+              {LEARN_ITEMS.filter((s) => s.group === g).map((s) => {
+                const on = s.id === id;
+                const sc = s.riskKey ? SEV_COLOR[s.riskKey] : '#2563eb';
+                return (
+                  <button key={s.id} onClick={() => { setId(s.id); setMode('full'); }}
+                    className={`w-full text-left rounded-xl border p-3 transition ${
+                      on ? 'border-accent-600 bg-accent-600/5'
+                         : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/5'
+                    }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full shrink-0" style={{ background: sc }} />
+                      <span className="flex-1 min-w-0 truncate text-sm font-medium">{s.name}</span>
+                    </div>
+                    <div className="mt-1 text-xs text-slate-500 pl-4">
+                      {s.riskKey ? `${s.tag} · ${(s.count ?? 0).toLocaleString()}건` : s.tag}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </div>
 
         {/* 상세 설명 */}
@@ -61,10 +68,10 @@ export default function LearnPage() {
           {/* 헤더 */}
           <div className="flex flex-wrap items-start gap-3 justify-between">
             <div className="min-w-0">
-              <div className="font-semibold break-all leading-snug">{sig.name}</div>
+              <div className="font-semibold break-all leading-snug">{item.name}</div>
               <div className="flex items-center gap-2 mt-2">
-                <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-slate-100 dark:bg-white/5 text-slate-500">{sig.category}</span>
-                <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ background: `${c}1a`, color: c }}>위험도 {riskLabel}</span>
+                {item.tag && <span className="text-[11px] px-2 py-0.5 rounded font-medium bg-slate-100 dark:bg-white/5 text-slate-500">{item.tag}</span>}
+                {risk && <span className="text-[11px] px-2 py-0.5 rounded font-medium" style={{ background: `${risk.c}1a`, color: risk.c }}>위험도 {risk.label}</span>}
               </div>
             </div>
             <div className="inline-flex rounded-lg border border-slate-200 dark:border-white/10 overflow-hidden text-sm shrink-0">
@@ -76,7 +83,7 @@ export default function LearnPage() {
           {/* 본문 */}
           {mode === 'summary' ? (
             <ul className="mt-5 space-y-3">
-              {sig.summary.map((line, i) => (
+              {item.summary.map((line, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-[15px] leading-7 text-slate-700 dark:text-slate-300">
                   <CheckCircle2 size={18} className="mt-1 shrink-0 text-accent-600 dark:text-accent-500" />
                   <span>{line}</span>
@@ -85,20 +92,22 @@ export default function LearnPage() {
             </ul>
           ) : (
             <div className="mt-5 space-y-6">
-              {sig.blocks.map((b, i) => (
+              {item.blocks.map((b, i) => (
                 <div key={i} className={i > 0 ? 'pt-6 border-t border-slate-100 dark:border-white/5' : ''}>
-                  <figure className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[.03] p-4">
-                    <LearnArt art={b.art} />
-                    <figcaption className="text-xs text-slate-400 mt-2 text-center">{ART_CAPTION[b.art]}</figcaption>
-                  </figure>
-                  <p className="mt-3 text-[15px] leading-7 text-slate-700 dark:text-slate-300">{b.text}</p>
+                  {b.art && (
+                    <figure className="rounded-lg border border-slate-200 dark:border-white/10 bg-slate-50 dark:bg-white/[.03] p-4">
+                      <LearnArt art={b.art} />
+                      <figcaption className="text-xs text-slate-400 mt-2 text-center">{ART_CAPTION[b.art]}</figcaption>
+                    </figure>
+                  )}
+                  <p className={`${b.art ? 'mt-3 ' : ''}text-[15px] leading-7 text-slate-700 dark:text-slate-300`}>{b.text}</p>
                 </div>
               ))}
             </div>
           )}
 
           {/* 출처 (STUN 한정 — 근거 표기) */}
-          {sig.id === 'stun' && (
+          {item.id === 'stun' && (
             <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5">
               <div className="text-xs text-slate-500 mb-2">출처</div>
               <div className="flex flex-wrap gap-x-4 gap-y-1.5">
