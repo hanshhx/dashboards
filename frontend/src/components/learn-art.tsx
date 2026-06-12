@@ -254,7 +254,35 @@ function CrossArt() {
   );
 }
 
+function IntroSocArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={40} w={90} h={44} label="보안 센서" sub="Suricata" fs={11} />
+      <Arrow from={[106, 62]} to={[120, 62]} />
+      <Box x={120} y={40} w={84} h={44} label="저장" sub="DB" fs={11} />
+      <Arrow from={[204, 62]} to={[218, 62]} />
+      <Box x={218} y={40} w={84} h={44} label="서버" sub="가공" fs={11} />
+      <Arrow from={[302, 62]} to={[316, 62]} />
+      <Box x={316} y={40} w={92} h={44} label="화면" sub="대시보드" tone="accent" fs={11} />
+      <Box x={16} y={104} w={448} h={30} label="사용자: 일반 · 관계자 · 관리자 (등급별 열람 범위)" fs={11} />
+    </Svg>
+  );
+}
+
+function IntroTermsArt() {
+  return (
+    <Svg vb="0 0 480 140">
+      <Box x={16} y={30} w={210} h={42} label="IP = 건물 주소" sub="203.0.113.5" tone="accent" fs={12} />
+      <Box x={16} y={84} w={210} h={42} label="포트 = 그 건물의 호실" sub="웹 80·443, SSH 22" fs={11} />
+      <Box x={254} y={30} w={210} h={42} label="프로토콜 = 대화 언어" sub="HTTP·DNS·TLS" fs={11} />
+      <Box x={254} y={84} w={210} h={42} label="NAT = 공동 현관" sub="집 여러 개 → 공인주소 1개" fs={11} />
+    </Svg>
+  );
+}
+
 const MAP: Record<ArtKey, () => JSX.Element> = {
+  'intro-soc': IntroSocArt,
+  'intro-terms': IntroTermsArt,
   'stun-intro': IntroArt,
   'stun-flow': FlowArt,
   'stun-decision': DecisionArt,
@@ -272,6 +300,8 @@ const MAP: Record<ArtKey, () => JSX.Element> = {
 };
 
 export const ART_CAPTION: Record<ArtKey, string> = {
+  'intro-soc': '탐지 로그가 센서 → 저장 → 서버 → 화면으로 흘러 대시보드가 됩니다.',
+  'intro-terms': 'IP·포트·프로토콜·NAT를 건물·우편에 빗대어 익혀 둡니다.',
   'stun-intro': '화상회의 같은 정상 통신이 STUN 트래픽을 만들고, 센서가 그것을 ‘정보성’으로 기록합니다.',
   'stun-flow': '기기가 STUN 서버에 물어 ‘바깥에서 보이는 자기 주소’를 받아오는 과정.',
   'stun-decision': '정상이면 끄거나 억제, 비정상 정황이면 출발지·빈도를 확인합니다.',
