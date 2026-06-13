@@ -18,13 +18,17 @@ public class UserRepository {
         this.jdbc = jdbc;
     }
 
-    private static final RowMapper<AppUser> MAP = (rs, i) -> new AppUser(
-            rs.getLong("id"),
-            rs.getString("username"),
-            rs.getString("password"),
-            rs.getString("role"),
-            rs.getBoolean("enabled"),
-            String.valueOf(rs.getObject("created_at")));
+    private static final RowMapper<AppUser> MAP = (rs, i) -> {
+        // created_at(timestamptz) → 절대시각을 ISO-8601(UTC, …Z)로. 프론트가 KST로 정확히 표시.
+        var createdAt = rs.getTimestamp("created_at");
+        return new AppUser(
+                rs.getLong("id"),
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getString("role"),
+                rs.getBoolean("enabled"),
+                createdAt == null ? null : createdAt.toInstant().toString());
+    };
 
     public Optional<AppUser> findByUsername(String username) {
         return jdbc.query("SELECT * FROM app_user WHERE username = ?", MAP, username).stream().findFirst();

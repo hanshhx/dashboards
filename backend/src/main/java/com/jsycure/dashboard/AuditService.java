@@ -48,7 +48,7 @@ public class AuditService {
     public List<AuditEntry> recent(int limit) {
         try {
             return jdbc.query(
-                    "SELECT id, to_char(at, 'YYYY-MM-DD HH24:MI:SS') AS at, username, action, detail " +
+                    "SELECT id, to_char(at AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"') AS at, username, action, detail " +
                     "FROM audit_log ORDER BY id DESC LIMIT ?", MAP, limit);
         } catch (Exception e) {
             return List.of();
