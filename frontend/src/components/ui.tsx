@@ -1,4 +1,7 @@
-import { ReactNode } from 'react';
+'use client';
+
+import { ReactNode, useState } from 'react';
+import { Info, ChevronDown } from 'lucide-react';
 import type { CountItem } from '@/lib/types';
 
 /* ────────────────────────────────────────────────────────────
@@ -26,9 +29,28 @@ export const CHART_PALETTE = ['#2563eb', '#0891b2', '#16a34a', '#ca8a04', '#ea58
 
 /* ── 공용 컴포넌트 ── */
 
+// 접이식 '설명 보기' — 그래프/요소가 무엇이고 어떻게 읽는지 자세히. lines는 문단 배열.
+export function Explain({ lines, label = '설명 보기' }: { lines: string[]; label?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="mb-3">
+      <button onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-1.5 text-xs font-medium text-accent-600 dark:text-accent-500 hover:underline">
+        <Info size={13} />{open ? '설명 접기' : label}
+        <ChevronDown size={13} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <div className="mt-2 rounded-lg bg-slate-50 dark:bg-white/[.03] border border-slate-200 dark:border-white/10 p-3 space-y-2 text-sm leading-7 text-slate-600 dark:text-slate-300">
+          {lines.map((l, i) => <p key={i}>{l}</p>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Card({
-  title, sub, children, className = '',
-}: { title?: string; sub?: string; children: ReactNode; className?: string }) {
+  title, sub, children, help, className = '',
+}: { title?: string; sub?: string; children: ReactNode; help?: string[]; className?: string }) {
   return (
     <div className={`rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-5 ${className}`}>
       {title && (
@@ -37,6 +59,7 @@ export function Card({
           {sub && <p className="text-xs text-slate-400 mt-0.5">{sub}</p>}
         </div>
       )}
+      {help && <Explain lines={help} />}
       {children}
     </div>
   );

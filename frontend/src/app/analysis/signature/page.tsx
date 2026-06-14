@@ -3,8 +3,9 @@
 import { useState, useEffect } from 'react';
 import { Fingerprint } from 'lucide-react';
 import { Shell } from '@/components/Shell';
-import { Card, Kpi, Skeleton, SevBars, fmt } from '@/components/ui';
+import { Card, Kpi, Skeleton, SevBars, Explain, fmt } from '@/components/ui';
 import { MiniBars } from '@/components/charts';
+import { GUIDE } from '@/lib/guide';
 import { useSignatureProfile, useSignatures } from '@/lib/api';
 
 export default function SignatureAnalysisPage() {
@@ -22,6 +23,7 @@ export default function SignatureAnalysisPage() {
 
   return (
     <Shell title="시그니처 분석" requireRole="STAFF">
+      <Explain lines={GUIDE.signature.query} label="이 화면은 무엇인가요?" />
       <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
         <Fingerprint size={18} className="text-accent-600 dark:text-accent-500" />
         <select value={sig} onChange={(e) => setSig(e.target.value)}
@@ -46,17 +48,18 @@ export default function SignatureAnalysisPage() {
             <div className="text-xs text-slate-500">시그니처</div>
             <div className="font-semibold mt-0.5 break-all">{p.signature}</div>
           </div>
+          <Explain lines={[...GUIDE.signature.total, ...GUIDE.signature.severity]} label="총 발생 건수와 위험도 분포는?" />
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
             <Kpi label="총 발생 건수" value={fmt(p.total)} accent="#dc2626" />
             <Card title="위험도 분포"><SevBars data={p.bySeverity} /></Card>
           </div>
           <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
-            <Card title="유발 출발지 IP Top" sub="이 규칙을 가장 많이 유발한 IP (클릭 → IP 분석)">
+            <Card title="유발 출발지 IP Top" sub="이 규칙을 가장 많이 유발한 IP (클릭 → IP 분석)" help={GUIDE.signature.srcips}>
               <MiniBars data={p.topSrcIps} color="#dc2626" maxH={280}
                 hrefFor={(ip) => `/analysis/ip?ip=${encodeURIComponent(ip)}`} />
             </Card>
-            <Card title="대상 포트 Top" sub="노린 목적지 포트"><MiniBars data={p.topPorts} color="#ea580c" maxH={280} /></Card>
-            <Card title="시간선" sub="시간대별 발생"><MiniBars data={p.timeline} color="#2563eb" maxH={280} /></Card>
+            <Card title="대상 포트 Top" sub="노린 목적지 포트" help={GUIDE.signature.ports}><MiniBars data={p.topPorts} color="#ea580c" maxH={280} /></Card>
+            <Card title="시간선" sub="시간대별 발생" help={GUIDE.signature.timeline}><MiniBars data={p.timeline} color="#2563eb" maxH={280} /></Card>
           </div>
         </>
       )}

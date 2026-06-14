@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Search, FileSearch, Download } from 'lucide-react';
 import { Shell } from '@/components/Shell';
-import { Card, Skeleton, Badge, Empty, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
+import { Card, Skeleton, Badge, Empty, Explain, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
+import { GUIDE } from '@/lib/guide';
 import { PayloadModal } from '@/components/PayloadModal';
 import { downloadBlob } from '@/lib/download';
 import { useEvents, useOverview, useEventsHistogram, useEventsTopSrc, fetchEventsExport } from '@/lib/api';
@@ -110,6 +111,7 @@ export default function EventsPage() {
   return (
     <Shell title="로그 탐색" requireRole="STAFF">
       {/* 검색·필터 */}
+      <Explain lines={[...GUIDE.events.search, ...GUIDE.events.export]} label="이 화면은 어떻게 쓰나요?" />
       <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4 flex flex-wrap items-center gap-3">
         <div className="relative flex-1 min-w-[200px]">
           <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -145,15 +147,16 @@ export default function EventsPage() {
 
       {/* 요약 박스 2개 */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card title="시각별 로그 개수" sub="시간대(시간별) 발생 건수 · 현재 필터 반영">
+        <Card title="시각별 로그 개수" sub="시간대(시간별) 발생 건수 · 현재 필터 반영" help={GUIDE.events.hist}>
           {hist.data ? <HistBars data={hist.data} /> : <Skeleton h="h-64" />}
         </Card>
-        <Card title="Top 10 공격 출발지 IP" sub="src_ip 기준 상위 · 현재 필터 반영">
+        <Card title="Top 10 공격 출발지 IP" sub="src_ip 기준 상위 · 현재 필터 반영" help={GUIDE.events.topsrc}>
           {topSrc.data ? <TopIpRank data={topSrc.data} /> : <Skeleton h="h-64" />}
         </Card>
       </div>
 
       {/* 전체보기 토글 */}
+      <Explain lines={GUIDE.events.table} label="전체 로그 표 · ‘원문’ 보기 설명" />
       <button onClick={() => setShowAll((v) => !v)}
         className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/[.03] text-sm font-medium">
         <FileSearch size={16} className="text-accent-600 dark:text-accent-500" />

@@ -2,8 +2,9 @@
 
 import { useState, useMemo } from 'react';
 import { Shell } from '@/components/Shell';
-import { Card, Kpi, Skeleton, Badge, Empty, SEV_COLOR, SEV_LABEL, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
+import { Card, Kpi, Skeleton, Badge, Empty, Explain, SEV_COLOR, SEV_LABEL, ETYPE_COLOR, fmt, fmtTime } from '@/components/ui';
 import { TimeSeries, Donut, BarRank } from '@/components/charts';
+import { GUIDE } from '@/lib/guide';
 import { useAuth, hasRole } from '@/lib/auth';
 import {
   useOverview, useTimeseries, useProtocols, useTalkers, useSignatures,
@@ -50,6 +51,7 @@ export default function OverviewPage() {
       )}
 
       {/* 핵심 지표 */}
+      <Explain lines={GUIDE.overview.kpi} label="이 숫자들은 무엇인가요?" />
       <div className="grid grid-cols-2 xl:grid-cols-4 gap-4">
         <Kpi label="총 이벤트" value={fmt(o?.totalEvents)} spark={totalSpark} />
         <Kpi label="경보" value={fmt(o?.alertCount)} accent="#dc2626" />
@@ -59,21 +61,21 @@ export default function OverviewPage() {
 
       {/* 추이 + 위험도 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
-        <Card title="이벤트 추이" sub="유형별 시간대 추이" className="xl:col-span-2">
+        <Card title="이벤트 추이" sub="유형별 시간대 추이" help={GUIDE.overview.trend} className="xl:col-span-2">
           {ts.data ? <TimeSeries data={ts.data} /> : <Skeleton h="h-72" />}
         </Card>
-        <Card title="위험도 분포" sub="경보 위험도 (높음이 가장 심각)">
+        <Card title="위험도 분포" sub="경보 위험도 (높음이 가장 심각)" help={GUIDE.overview.severity}>
           {o ? <Donut data={o.bySeverity} colors={SEV_COLOR} /> : <Skeleton />}
         </Card>
       </div>
 
       {/* 프로토콜 + 시그니처 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
-        <Card title="프로토콜 비중" sub="통신 프로토콜별 비중" className={staff ? '' : 'xl:col-span-3'}>
+        <Card title="프로토콜 비중" sub="통신 프로토콜별 비중" help={GUIDE.overview.protocol} className={staff ? '' : 'xl:col-span-3'}>
           {proto.data ? <Donut data={proto.data} colors={ETYPE_COLOR} /> : <Skeleton />}
         </Card>
         {staff && (
-          <Card title="탐지 시그니처" sub="탐지 규칙별 발생 건수" className="xl:col-span-2">
+          <Card title="탐지 시그니처" sub="탐지 규칙별 발생 건수" help={GUIDE.overview.signature} className="xl:col-span-2">
             {sig.data ? <BarRank data={sig.data} /> : <Skeleton h="h-72" />}
           </Card>
         )}
@@ -82,10 +84,10 @@ export default function OverviewPage() {
       {/* 공격 유형 + 대상 포트 */}
       {staff && (
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
-          <Card title="공격 유형" sub="공격 분류별 분포">
+          <Card title="공격 유형" sub="공격 분류별 분포" help={GUIDE.overview.category}>
             {cat.data ? (cat.data.length ? <BarRank data={cat.data} color="#0891b2" /> : <Empty label="공격 유형 데이터가 없습니다" />) : <Skeleton h="h-72" />}
           </Card>
-          <Card title="주요 대상 포트" sub="공격이 노린 서비스 포트">
+          <Card title="주요 대상 포트" sub="공격이 노린 서비스 포트" help={GUIDE.overview.ports}>
             {ports.data ? <BarRank data={ports.data} color="#ea580c" /> : <Skeleton h="h-72" />}
           </Card>
         </div>
@@ -94,7 +96,7 @@ export default function OverviewPage() {
       {/* 주요 통신 IP + 경보 */}
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 mt-4">
         {staff && (
-          <Card title="주요 통신 IP" sub="출발지·목적지 IP 순위">
+          <Card title="주요 통신 IP" sub="출발지·목적지 IP 순위" help={GUIDE.overview.talkers}>
             {talk.data ? (
               <table className="w-full text-sm">
                 <thead className="text-left text-xs text-slate-500">
@@ -115,7 +117,7 @@ export default function OverviewPage() {
           </Card>
         )}
 
-        <Card title="경보 모니터링" sub="위험도순 정렬 · 위험도 필터" className={staff ? '' : 'xl:col-span-2'}>
+        <Card title="경보 모니터링" sub="위험도순 정렬 · 위험도 필터" help={GUIDE.overview.alerts} className={staff ? '' : 'xl:col-span-2'}>
           {/* 정렬/필터 컨트롤 */}
           <div className="flex items-center gap-1.5 mb-3 flex-wrap">
             <button onClick={() => setAlertSort('severity')} className={chip(alertSort === 'severity')}>위험순</button>
