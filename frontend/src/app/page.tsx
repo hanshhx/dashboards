@@ -36,6 +36,27 @@ export default function OverviewPage() {
     return Array.from(m.keys()).sort().map((k) => m.get(k)!);
   }, [ts.data]);
 
+  // 위험도 도넛: 숫자(1·2·3) 대신 한글 라벨(높음·중간·낮음·정보)로 표시
+  const sevDonut = useMemo(() => {
+    const rows = o?.bySeverity ?? [];
+    const lab = (k: string | null) => SEV_LABEL[String(k ?? '')] ?? `위험도 ${k}`;
+    const data = rows.map((d) => ({ key: lab(d.key), count: d.count }));
+    const colors: Record<string, string> = {};
+    rows.forEach((d) => { colors[lab(d.key)] = SEV_COLOR[String(d.key ?? '')] ?? '#64748b'; });
+    return { data, colors };
+  }, [o]);
+
+  // 프로토콜 도넛: 빈 값('(empty)')을 unknown 으로 합쳐 정리
+  const protoDonut = useMemo(() => {
+    if (!proto.data) return undefined;
+    const m = new Map<string, number>();
+    for (const d of proto.data) {
+      const k = d.key && d.key.trim() ? d.key : 'unknown';
+      m.set(k, (m.get(k) ?? 0) + d.count);
+    }
+    return Array.from(m, ([key, count]) => ({ key, count })).sort((a, b) => b.count - a.count);
+  }, [proto.data]);
+
   const chip = (on: boolean) =>
     `text-xs px-2.5 py-1 rounded-lg font-medium ${on ? 'bg-accent-600 text-white' : 'bg-slate-100 dark:bg-white/5 text-slate-500 hover:bg-slate-200 dark:hover:bg-white/10'}`;
   const SEVS: { v: number | undefined; l: string }[] = [
@@ -65,14 +86,14 @@ export default function OverviewPage() {
           {ts.data ? <TimeSeries data={ts.data} /> : <Skeleton h="h-72" />}
         </Card>
         <Card title="위험도 분포" sub="경보 위험도 (높음이 가장 심각)" help={GUIDE.overview.severity}>
-          {o ? <Donut data={o.bySeverity} colors={SEV_COLOR} /> : <Skeleton />}
+          {o ? <Donut data={sevDonut.data} colors={sevDonut.colors} /> : <Skeleton />}
         </Card>
       </div>
 
       {/* 프로토콜 + 시그니처 */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 mt-4">
         <Card title="프로토콜 비중" sub="통신 프로토콜별 비중" help={GUIDE.overview.protocol} className={staff ? '' : 'xl:col-span-3'}>
-          {proto.data ? <Donut data={proto.data} colors={ETYPE_COLOR} /> : <Skeleton />}
+          {protoDonut ? <Donut data={protoDonut} colors={ETYPE_COLOR} /> : <Skeleton />}
         </Card>
         {staff && (
           <Card title="탐지 시그니처" sub="탐지 규칙별 발생 건수" help={GUIDE.overview.signature} className="xl:col-span-2">
