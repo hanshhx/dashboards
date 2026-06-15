@@ -22,32 +22,50 @@ function useAxis() {
 }
 
 /** 이벤트 추이 — 유형별 누적 영역 차트 */
+const ETS_TOP = 8; // 개별 표시할 유형 수 (나머지는 '기타'로 합침)
+
 export function TimeSeries({ data }: { data: TimePoint[] }) {
   const { grid, tick, tooltipBg } = useAxis();
   const { rows, keys } = useMemo(() => {
+    if (!data?.length) return { rows: [], keys: [] as string[] };
+
+    // 1) 유형별 총합으로 상위 ETS_TOP 만 개별 표시, 나머지는 '기타'로 묶는다.
+    const totals = new Map<string, number>();
+    for (const p of data) totals.set(p.eventType, (totals.get(p.eventType) ?? 0) + p.count);
+    const top = Array.from(totals.entries()).sort((a, b) => b[1] - a[1]).slice(0, ETS_TOP).map(([k]) => k);
+    const topSet = new Set(top);
+    const keys = totals.size > top.length ? [...top, '기타'] : top;
+
+    // 2) 버킷별 행을 만들되, 모든 key를 0으로 초기화해 누적 영역이 끊기지 않게 한다.
     const map = new Map<string, Record<string, number | string>>();
-    const ks = new Set<string>();
     for (const p of data) {
-      ks.add(p.eventType);
-      const label = new Date(p.bucket).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit' });
-      const row = map.get(p.bucket) ?? { t: label };
-      row[p.eventType] = ((row[p.eventType] as number) ?? 0) + p.count;
-      map.set(p.bucket, row);
+      let row = map.get(p.bucket);
+      if (!row) {
+        row = { _b: p.bucket, t: new Date(p.bucket).toLocaleString('ko-KR', { month: 'numeric', day: 'numeric', hour: '2-digit' }) };
+        for (const k of keys) row[k] = 0;
+        map.set(p.bucket, row);
+      }
+      const k = topSet.has(p.eventType) ? p.eventType : '기타';
+      row[k] = (row[k] as number) + p.count;
     }
-    return { rows: Array.from(map.values()), keys: Array.from(ks) };
+    // 3) 시간순 정렬 (bucket = ISO 문자열이라 사전식 정렬이 곧 시간순)
+    const rows = Array.from(map.values()).sort((a, b) => String(a._b).localeCompare(String(b._b)));
+    return { rows, keys };
   }, [data]);
+
+  const colorFor = (k: string, i: number) => ETYPE_COLOR[k] || CHART_PALETTE[i % CHART_PALETTE.length];
 
   return (
     <ResponsiveContainer width="100%" height={288}>
       <AreaChart data={rows} margin={{ left: -12, right: 8, top: 8, bottom: 0 }}>
         <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-        <XAxis dataKey="t" tick={{ fill: tick, fontSize: 11 }} />
-        <YAxis tick={{ fill: tick, fontSize: 11 }} />
+        <XAxis dataKey="t" tick={{ fill: tick, fontSize: 11 }} minTickGap={40} />
+        <YAxis tick={{ fill: tick, fontSize: 11 }} allowDecimals={false} />
         <Tooltip contentStyle={{ background: tooltipBg, border: `1px solid ${grid}`, borderRadius: 8, fontSize: 12 }} />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        {keys.map((k) => (
-          <Area key={k} type="monotone" dataKey={k} stackId="1"
-                stroke={ETYPE_COLOR[k] || '#2563eb'} fill={(ETYPE_COLOR[k] || '#2563eb') + '55'} />
+        {keys.map((k, i) => (
+          <Area key={k} type="monotone" dataKey={k} stackId="1" connectNulls
+                stroke={colorFor(k, i)} fill={colorFor(k, i) + '55'} />
         ))}
       </AreaChart>
     </ResponsiveContainer>
