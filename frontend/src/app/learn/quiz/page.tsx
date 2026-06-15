@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
-import { RotateCcw, ArrowRight, Lock, Trophy, ChevronRight, GraduationCap, Dumbbell } from 'lucide-react';
+import { RotateCcw, ArrowRight, Lock, Trophy, ChevronRight, GraduationCap, Dumbbell, PenLine } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { LearnTabs } from '@/components/LearnTabs';
 import { QUIZ, STAGES, STAGE_DESC, type QuizQ, type Stage } from '@/lib/learn';
-import { loadCleared, markCleared, isUnlocked, PASS_RATIO } from '@/lib/learn-progress';
+import { loadCleared, markCleared, isUnlocked, PASS_RATIO, loadNotes, saveNote, qKey } from '@/lib/learn-progress';
 
 const LEVEL_COLOR: Record<QuizQ['level'], string> = { 쉬움: '#16a34a', 보통: '#ea580c', 어려움: '#dc2626' };
 const STAGE_COLOR: Record<Stage, string> = { 입문: '#16a34a', 기초: '#2563eb', 심화: '#ea580c' };
@@ -30,10 +30,12 @@ export default function QuizPage() {
   const [practicePicked, setPracticePicked] = useState<Record<number, number>>({});
   const [examIds, setExamIds] = useState<number[]>([]);
   const [examPicked, setExamPicked] = useState<Record<number, number>>({});
+  const [notes, setNotes] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const c = loadCleared();
     setCleared(c);
+    setNotes(loadNotes());
     setReady(true);
     const firstOpen = STAGES.find((s) => isUnlocked(s, c) && !c.includes(s))
       ?? [...STAGES].reverse().find((s) => isUnlocked(s, c)) ?? '입문';
@@ -104,9 +106,21 @@ export default function QuizPage() {
           })}
         </div>
         {done && (
-          <div className="mt-3 text-sm">
-            <span className="font-medium" style={{ color: sel === q.ans ? '#16a34a' : '#dc2626' }}>{sel === q.ans ? '정답!' : '아쉬워요'}</span>{' '}
-            <span className="text-slate-600 dark:text-slate-300">{q.exp}</span>
+          <div className="mt-3">
+            <div className="rounded-lg border-l-4 px-3.5 py-2.5 text-sm" style={{ borderColor: sel === q.ans ? '#16a34a' : '#dc2626', background: (sel === q.ans ? '#16a34a' : '#dc2626') + '12' }}>
+              <span className="font-semibold" style={{ color: sel === q.ans ? '#16a34a' : '#dc2626' }}>{sel === q.ans ? '정답!' : '아쉬워요'}</span>{' '}
+              <span className="text-slate-700 dark:text-slate-200 leading-6">{q.detail ?? q.exp}</span>
+            </div>
+            {/* 오답노트 / 메모 (자동 저장) */}
+            <div className="mt-2">
+              <div className="flex items-center gap-1 text-xs text-slate-500 mb-1"><PenLine size={12} /> 오답노트 / 메모</div>
+              <textarea
+                value={notes[qKey(q.q)] ?? ''}
+                onChange={(e) => { const v = e.target.value; const k = qKey(q.q); setNotes((p) => ({ ...p, [k]: v })); saveNote(k, v); }}
+                rows={2}
+                placeholder="헷갈린 점·기억할 포인트를 적어두면 자동 저장돼요"
+                className="w-full text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent-600 outline-none resize-y text-slate-700 dark:text-slate-200 placeholder:text-slate-400" />
+            </div>
             <div className="mt-2 flex items-center gap-4 flex-wrap">
               {wrong && q.relatedId && (
                 <Link href={`/learn?item=${q.relatedId}`} className="inline-flex items-center gap-1 text-xs text-accent-600 dark:text-accent-500 hover:underline">

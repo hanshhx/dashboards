@@ -51,3 +51,23 @@ export function toggleDone(id: string): string[] {
   write(DONE_KEY, next);
   return next;
 }
+/** 다 읽었을 때 자동 완료 — 추가만(끄지 않음) */
+export function markDoneOnce(id: string): string[] {
+  const cur = loadDone();
+  if (!cur.includes(id)) { cur.push(id); write(DONE_KEY, cur); }
+  return cur;
+}
+
+// ── 오답노트(문제별 메모) — 문제 텍스트 기준 안정 키로 저장 ──
+const NOTES_KEY = 'quiz_notes_v1';
+export function qKey(q: string): string {
+  let h = 0;
+  for (let i = 0; i < q.length; i++) h = (h * 31 + q.charCodeAt(i)) | 0;
+  return 'q' + (h >>> 0).toString(36);
+}
+export const loadNotes = (): Record<string, string> => read<Record<string, string>>(NOTES_KEY, {});
+export function saveNote(key: string, text: string) {
+  const n = loadNotes();
+  if (text.trim()) n[key] = text; else delete n[key];
+  write(NOTES_KEY, n);
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { CheckCircle2, Circle, Target, ExternalLink, Search, ListChecks, BookOpen, Lock, Trophy, ChevronRight } from 'lucide-react';
 import { Shell } from '@/components/Shell';
@@ -8,7 +8,7 @@ import { LearnTabs } from '@/components/LearnTabs';
 import { SEV_COLOR, SEV_LABEL } from '@/components/ui';
 import { LearnArt, ART_CAPTION } from '@/components/learn-art';
 import { LEARN_ITEMS, STAGES, STAGE_DESC, type Stage, type LearnItem } from '@/lib/learn';
-import { loadCleared, isUnlocked, loadDone, toggleDone as toggleDoneStore } from '@/lib/learn-progress';
+import { loadCleared, isUnlocked, loadDone, toggleDone as toggleDoneStore, markDoneOnce } from '@/lib/learn-progress';
 
 const STUN_SOURCES = [
   { label: 'Emerging Threats 공식 안내', url: 'https://community.emergingthreats.net/t/if-you-get-the-alert-et-info-session-traversal-utilities-for-nat-stun-binding-request/751' },
@@ -25,6 +25,7 @@ export default function LearnPage() {
   const [done, setDone] = useState<string[]>([]);
   const [cleared, setCleared] = useState<Stage[]>([]);
   const [ready, setReady] = useState(false);
+  const endRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     setDone(loadDone());
@@ -40,6 +41,21 @@ export default function LearnPage() {
   const itemUnlocked = isUnlocked(item.level, cleared);
 
   const toggleDone = () => setDone(toggleDoneStore(item.id));
+
+  // 본문을 끝까지 스크롤하면(끝 지점이 화면에 ~1초 머무르면) 자동으로 '완료' 처리. 이미 완료면 동작 안 함.
+  useEffect(() => {
+    if (!ready || !itemUnlocked || done.includes(item.id)) return;
+    const el = endRef.current;
+    if (!el) return;
+    let t: ReturnType<typeof setTimeout> | null = null;
+    const io = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        t = setTimeout(() => setDone(markDoneOnce(item.id)), 900);
+      } else if (t) { clearTimeout(t); t = null; }
+    }, { threshold: 0.1 });
+    io.observe(el);
+    return () => { io.disconnect(); if (t) clearTimeout(t); };
+  }, [ready, itemUnlocked, item.id, done, mode]);
 
   const matches = (s: LearnItem) => {
     const q = query.trim().toLowerCase();
@@ -276,6 +292,10 @@ export default function LearnPage() {
               {item.level} 퀴즈 풀기 <ChevronRight size={14} />
             </Link>
           </div>
+
+          {/* 끝까지 읽으면 자동 완료되는 지점 */}
+          <div ref={endRef} className="h-4" />
+          {!isDone && <div className="mt-1 text-center text-[11px] text-slate-400">여기까지 읽으면 자동으로 ‘완료’ 표시돼요</div>}
         </div>
         )}
       </div>

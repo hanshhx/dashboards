@@ -1,4 +1,4 @@
-// 입문 단계 — 네트워크·로그 기본기. 18개 항목 + 문제 은행.
+// 입문 단계 — 네트워크·로그 기본기. 18개 항목 + 문제 은행(자세한 해설 detail 포함).
 import type { LearnItem, QuizQ } from '../learn-types';
 
 export const INTRO_ITEMS: LearnItem[] = [
@@ -153,8 +153,6 @@ export const INTRO_ITEMS: LearnItem[] = [
       { text: `이동은 왼쪽 사이드바로 합니다. 등급(일반·관계자·관리자)에 따라 메뉴가 달라요 — 일반은 개요 요약, 관계자는 로그탐색·분석까지, 관리자는 원문·회원·감사까지. 각 그래프 옆 ‘설명 보기’로 그 자리에서 해설을 펼칠 수 있습니다. 기본기는 여기까지 — 입문 시험을 통과하면 ‘기초’가 열립니다.` },
     ],
   },
-
-  // ── 신규 입문 항목 ──
   {
     id: 'intro-ports', group: '시작하기', order: 9, level: '입문',
     name: '주요 포트 번호 사전', tag: '암기 도움',
@@ -172,7 +170,7 @@ export const INTRO_ITEMS: LearnItem[] = [
     ],
     blocks: [
       { text: `포트는 ‘서비스 호실 번호’라, 번호만 봐도 무슨 서비스인지 알 수 있습니다. 꼭 외울 것 — 22(SSH·원격접속), 80(HTTP·웹), 443(HTTPS·암호화 웹), 3389(RDP·윈도우 원격), 53(DNS·주소 변환), 25/587(메일), 23(Telnet·옛 원격접속, 평문이라 위험), 3478(STUN·화상통화 보조), 8080/8443(대체 웹).` },
-      { text: `‘주요 대상 포트’ 그래프에 443이 1위면 웹(HTTPS)이 가장 표적이 됐다는 뜻이고, 23(Telnet)이나 3389(RDP)가 높으면 원격접속이 노려졌다는 신호입니다. 예상치 못한 포트가 상위에 있으면 그 서비스가 외부에 노출됐는지 점검할 단서가 됩니다.` },
+      { text: `‘주요 대상 포트’ 그래프에 443이 1위면 웹(HTTPS)이 가장 표적이 됐다는 뜻이고, 23(Telnet)이나 3389(RDP)가 높으면 원격접속이 노려졌다는 신호입니다. 예상치 못한 포트가 상위에 있으면, 그 서비스가 외부에 노출됐는지 점검할 단서가 됩니다.` },
     ],
   },
   {
@@ -201,16 +199,16 @@ export const INTRO_ITEMS: LearnItem[] = [
       { term: '계층(layer)', def: '통신을 역할별로 쌓은 단계(주소→연결→앱).' },
       { term: 'L3(네트워크)', def: 'IP 주소로 길 찾기.' },
       { term: 'L4(전송)', def: 'TCP/UDP·포트로 어느 서비스인지.' },
-      { term: 'L7(응용)', def: 'HTTP·DNS·TLS 등 실제 앱 프로토콜.' },
+      { term: 'L7(응용)', def: 'HTTP·DNS 등 실제 앱 프로토콜.' },
     ],
     summary: [
       '통신은 택배처럼 여러 단계로 포장됩니다 — 주소(IP)·연결(포트)·내용(앱 프로토콜).',
-      '핵심 셋: L3=IP(누구↔누구), L4=포트/TCP·UDP(어느 서비스), L7=HTTP·DNS·TLS(무슨 앱).',
-      '보안 로그는 이 셋을 합쳐 보여 줍니다 — proto(L4)·포트(L4)·app_proto(L7).',
+      '핵심 셋: L3=IP(누구↔누구), L4=포트/TCP·UDP(어느 서비스), L7=HTTP·DNS(무슨 앱).',
+      'TLS 암호화는 전송(L4)과 응용(L7) 사이에 끼어 내용을 보호합니다.',
     ],
     blocks: [
-      { text: `통신은 택배 포장처럼 여러 ‘계층’으로 쌓여 있습니다. 다 외울 필요 없이 셋만 — L3(네트워크): IP 주소로 ‘누구에서 누구로’ 길을 찾고, L4(전송): TCP/UDP와 포트로 ‘어느 서비스인지’를 정하고, L7(응용): HTTP·DNS·TLS처럼 ‘실제로 무슨 앱 대화인지’를 담습니다.` },
-      { text: `대시보드의 한 줄도 이 계층이 합쳐진 것입니다 — 출발지/목적지 IP(L3), 포트와 proto(L4), app_proto(L7). 프로토콜 도넛의 tcp/udp는 L4, http/dns/tls는 L7입니다. 계층을 알면 ‘이건 연결 단계 문제인지, 앱 단계 문제인지’가 구분됩니다.` },
+      { text: `통신은 택배 포장처럼 여러 ‘계층’으로 쌓여 있습니다. 다 외울 필요 없이 셋만 — L3(네트워크): IP 주소로 ‘누구에서 누구로’ 길을 찾고, L4(전송): TCP/UDP와 포트로 ‘어느 서비스인지’를 정하고, L7(응용): HTTP·DNS처럼 ‘실제로 무슨 앱 대화인지’를 담습니다. (TLS 암호화는 전송과 응용 사이에 끼어 내용을 보호합니다.)` },
+      { text: `대시보드의 한 줄도 이 계층이 합쳐진 것입니다 — 출발지/목적지 IP(L3), 포트와 proto(L4), app_proto(L7). 프로토콜 도넛의 tcp/udp는 L4, http·dns는 L7이고, tls는 그 사이의 암호화 계층입니다. 계층을 알면 ‘이건 연결 단계 문제인지, 앱 단계 문제인지’가 구분됩니다.` },
     ],
   },
   {
@@ -223,11 +221,11 @@ export const INTRO_ITEMS: LearnItem[] = [
     ],
     summary: [
       'DNS는 사람이 쓰는 이름(example.com)을 컴퓨터가 쓰는 IP로 바꿔 줍니다.',
-      '보통 UDP 53번 포트를 쓰며, 거의 모든 통신의 ‘첫 단계’입니다.',
+      '보통 UDP 53번 포트를 쓰며(큰 응답은 TCP), 거의 모든 통신의 첫 단계입니다.',
       '악성코드가 명령서버 주소를 DNS로 찾기도 해, 수상한 도메인 질의는 단서가 됩니다.',
     ],
     blocks: [
-      { text: `우리는 example.com 같은 이름을 쓰지만 컴퓨터는 IP(203.0.113.5)로만 통신합니다. 그 사이를 이어 주는 ‘전화번호부’가 DNS입니다. 브라우저가 “example.com 주소 뭐야?”(질의)를 DNS 서버에 보내면 “203.0.113.5야”(응답)가 옵니다. 보통 UDP 53번 포트를 씁니다.` },
+      { text: `우리는 example.com 같은 이름을 쓰지만 컴퓨터는 IP(203.0.113.5)로만 통신합니다. 그 사이를 이어 주는 ‘전화번호부’가 DNS입니다. 브라우저가 “example.com 주소 뭐야?”(질의)를 DNS 서버에 보내면 “203.0.113.5야”(응답)가 옵니다. 보통 UDP 53번 포트를 쓰고, 응답이 크면 TCP 53도 씁니다.` },
       { text: `DNS는 거의 모든 통신의 첫 단계라 로그가 많습니다. 보안에서 중요한 이유 — 악성코드도 명령서버(C2) 주소를 DNS로 찾고, 공격자가 만든 수상한 도메인 질의가 보이면 감염 단서가 됩니다. 그래서 ‘평소 안 가던 이상한 도메인 질의’를 살핍니다.` },
     ],
   },
@@ -261,7 +259,7 @@ export const INTRO_ITEMS: LearnItem[] = [
     summary: [
       'TLS는 통신 내용을 암호화해 중간에서 엿봐도 못 읽게 합니다(HTTPS의 S).',
       '시작할 때 인증서로 상대가 진짜인지 확인하는 핸드셰이크를 합니다.',
-      '암호화돼 있어 내용은 못 봐도, 누가·언제·어떤 인증서로 연결했는지는 로그에 남습니다.',
+      '암호화돼 내용은 못 봐도, 누가·언제·어떤 인증서로 연결했는지는 로그에 남습니다.',
     ],
     blocks: [
       { text: `TLS는 통신을 암호화해 중간에서 누가 엿봐도 내용을 못 읽게 하는 규약입니다(예전엔 SSL이라 불렀고, HTTPS의 ‘S’가 이것). 연결을 시작할 때 ‘핸드셰이크’를 하며, 서버는 ‘인증서’로 자신이 진짜임을 증명합니다 — 위조 사이트에 속지 않게요.` },
@@ -344,88 +342,137 @@ export const INTRO_ITEMS: LearnItem[] = [
 ];
 
 export const INTRO_QUIZ: QuizQ[] = [
-  // intro-terms / 기본 용어
-  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '한 기기 안에서 ‘어떤 서비스인지’를 구분하는 번호는?', opts: ['IP 주소', '포트', '프로토콜'], ans: 1, exp: 'IP가 건물 주소라면 포트는 호실 번호입니다. 예: 웹 80·443, SSH 22.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '인터넷에서 기기를 식별하는 주소는?', opts: ['포트', 'IP 주소', '시그니처'], ans: 1, exp: 'IP 주소는 ‘건물 주소’입니다. 예: 203.0.113.5.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-terms', q: 'NAT를 가장 잘 비유한 것은?', opts: ['여러 집을 공동 현관(공인 주소) 하나로 묶는 것', '문이 열렸는지 두드려 보는 것', '비밀번호를 암호화하는 것'], ans: 0, exp: 'NAT는 사설 주소 여러 개를 공인 주소 하나로 묶어 내보냅니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-terms', q: '‘payload(원문)’에 대한 설명으로 옳은 것은?', opts: ['실제 통신 내용이며 관리자만 열람', '경보의 심각도', '공유기의 다른 이름'], ans: 0, exp: 'payload는 통신 내용 그 자체라 민감해 관리자만 봅니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '‘프로토콜’을 가장 잘 설명한 것은?', opts: ['통신의 규칙·방식(언어)', '컴퓨터의 전원', '파일 크기'], ans: 0, exp: 'HTTP·DNS·TLS처럼 통신하는 규칙·방식이 프로토콜입니다.' },
+  // ── 기초 용어 ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '한 기기 안에서 ‘어떤 서비스인지’를 구분하는 번호는?', opts: ['IP 주소', '포트', '프로토콜'], ans: 1,
+    exp: '포트가 정답입니다.', detail: 'IP가 ‘건물 주소’라면 포트는 ‘그 건물의 호실 번호’입니다. 한 서버(IP) 안에서 웹(80·443)·SSH(22)·DNS(53) 같은 여러 서비스가 각자 다른 포트 번호로 구분됩니다. IP 주소는 기기를, 프로토콜은 대화 방식을 뜻하므로 ‘서비스 구분’과는 다릅니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '인터넷에서 기기를 식별하는 주소는?', opts: ['포트', 'IP 주소', '시그니처'], ans: 1,
+    exp: 'IP 주소입니다.', detail: 'IP 주소(예: 203.0.113.5)는 인터넷에서 기기를 찾아가는 ‘건물 주소’입니다. 포트는 그 안의 서비스 번호, 시그니처는 탐지 규칙 이름이라 ‘기기 식별’과는 역할이 다릅니다. 로그의 출발지/목적지가 모두 이 IP로 적힙니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-terms', q: 'NAT를 가장 잘 비유한 것은?', opts: ['여러 집을 공동 현관(공인 주소) 하나로 묶는 것', '문이 열렸는지 두드려 보는 것', '비밀번호를 암호화하는 것'], ans: 0,
+    exp: '공동 현관으로 묶는 것이 NAT입니다.', detail: 'NAT는 사설 IP(예: 192.168.x.x)를 쓰는 여러 기기를 공인 IP 하나로 묶어 인터넷에 내보내는 공유기 기능입니다. ‘문 두드리기’는 포트 스캔, ‘암호화’는 TLS라 NAT와 무관합니다. 그래서 외부에선 한 공인 IP 뒤에 여러 내부 기기가 숨어 보입니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-terms', q: '‘payload(원문)’에 대한 설명으로 옳은 것은?', opts: ['실제 통신 내용이며 관리자만 열람', '경보의 심각도', '공유기의 다른 이름'], ans: 0,
+    exp: '실제 통신 내용이라 관리자만 봅니다.', detail: 'payload는 실제로 오간 통신 내용 그 자체라 가장 민감합니다. 그래서 이 대시보드에선 관리자(ADMIN)만 열 수 있고, 열람 사실은 감사 로그에 남습니다. ‘경보의 심각도’는 위험도(severity), ‘공유기’는 NAT라 전혀 다른 개념입니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-terms', q: '‘프로토콜’을 가장 잘 설명한 것은?', opts: ['통신의 규칙·방식(언어)', '컴퓨터의 전원', '파일 크기'], ans: 0,
+    exp: '통신의 규칙·방식입니다.', detail: '프로토콜은 두 기기가 ‘어떤 언어·규칙으로 대화할지’ 약속한 것입니다. HTTP(웹)·DNS(주소 변환)·TLS(암호화)가 대표적이며, 로그의 proto·app_proto 칸에 나타납니다. 전원이나 파일 크기와는 관계가 없습니다.' },
 
-  // intro-soc
-  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: '보안 로그가 화면까지 오는 흐름으로 옳은 것은?', opts: ['센서 → 저장(DB) → 서버 → 화면', '화면 → 센서 → 사용자', '사용자 → DB → 센서'], ans: 0, exp: '센서가 만든 로그를 DB에 저장하고, 서버가 가공해 화면으로 보여 줍니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: 'Suricata는 무엇인가요?', opts: ['통신을 검사해 규칙에 맞는 것을 기록하는 보안 센서', '데이터베이스', '웹 브라우저'], ans: 0, exp: 'Suricata는 통신을 검사하는 오픈소스 보안 센서(IDS/IPS)입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-soc', q: 'IDS와 IPS의 차이로 옳은 것은?', opts: ['IDS는 탐지·알림, IPS는 차단까지', '완전히 같다', 'IDS가 더 최신 기술'], ans: 0, exp: 'IDS는 탐지해 알리고, IPS는 한발 더 나아가 차단까지 합니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: '‘보안관제(SOC)’가 하는 일은?', opts: ['위협을 탐지·분석·대응', '서버 전기 요금 관리', '웹 디자인'], ans: 0, exp: 'SOC는 보안 로그를 보며 위협을 판단하고 대응하는 일입니다.' },
+  // ── intro-soc ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: '보안 로그가 화면까지 오는 흐름으로 옳은 것은?', opts: ['센서 → 저장(DB) → 서버 → 화면', '화면 → 센서 → 사용자', '사용자 → DB → 센서'], ans: 0,
+    exp: '센서 → DB → 서버 → 화면 순입니다.', detail: '보안 센서(Suricata)가 통신을 검사해 로그를 만들고 → 데이터베이스에 저장 → 백엔드 서버가 읽어 가공 → 웹 화면에 보여 줍니다. 이 한 줄 흐름을 알면 “데이터가 안 보인다”는 문제가 어느 단계 탓인지 추적하기 쉽습니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: 'Suricata는 무엇인가요?', opts: ['통신을 검사해 규칙에 맞는 것을 기록하는 보안 센서', '데이터베이스', '웹 브라우저'], ans: 0,
+    exp: '통신을 검사하는 보안 센서입니다.', detail: 'Suricata는 네트워크를 오가는 패킷을 들여다보며 탐지 규칙(시그니처)에 맞는 것을 기록하는 오픈소스 IDS/IPS입니다. 데이터베이스는 그 기록을 저장하는 곳, 브라우저는 화면을 띄우는 프로그램이라 역할이 다릅니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-soc', q: 'IDS와 IPS의 차이로 옳은 것은?', opts: ['IDS는 탐지·알림, IPS는 차단까지', '완전히 같다', 'IDS가 더 최신 기술'], ans: 0,
+    exp: 'IDS=탐지·알림, IPS=차단까지.', detail: 'IDS(침입 탐지 시스템)는 위협을 찾아 ‘알림’만 주고, IPS(침입 방지 시스템)는 한발 더 나아가 그 트래픽을 ‘차단’합니다. Suricata는 설정에 따라 둘 다로 동작할 수 있습니다. 신·구 기술의 차이가 아니라 ‘알림이냐 차단이냐’의 차이입니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-soc', q: '‘보안관제(SOC)’가 하는 일은?', opts: ['위협을 탐지·분석·대응', '서버 전기 요금 관리', '웹 디자인'], ans: 0,
+    exp: '위협을 탐지·분석·대응합니다.', detail: 'SOC(보안관제센터)는 보안 로그를 모니터링하며 위협을 탐지하고, 진짜인지 분석하고, 차단·격리 등으로 대응하는 일을 합니다. 이 대시보드가 바로 그 ‘탐지·분석’을 돕는 화면입니다.' },
 
-  // intro-packet
-  { stage: '입문', level: '쉬움', relatedId: 'intro-packet', q: '모든 통신을 표현하는 기본 축은?', opts: ['출발지 → 목적지', '위 → 아래', '과거 → 미래'], ans: 0, exp: '통신은 늘 ‘출발지 IP:포트 → 목적지 IP:포트’ 형태입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-packet', q: 'TCP가 연결을 여는 3단계(3-way handshake) 순서는?', opts: ['SYN → SYN-ACK → ACK', 'ACK → SYN → FIN', 'GET → POST → END'], ans: 0, exp: '보내는 쪽 SYN, 받는 쪽 SYN-ACK, 다시 ACK로 엽니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-packet', q: '통신을 식별하는 다섯 값(5-tuple)에 포함되지 않는 것은?', opts: ['출발지 IP', '목적지 포트', '비밀번호'], ans: 2, exp: '5-tuple = 출발지IP·출발지포트·목적지IP·목적지포트·프로토콜입니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-packet', q: '데이터를 잘게 나눠 보내는 한 조각을 뭐라 하나요?', opts: ['패킷', '포트', '도메인'], ans: 0, exp: '데이터는 ‘패킷’으로 쪼개져 전달됩니다.' },
+  // ── intro-packet ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-packet', q: '모든 통신을 표현하는 기본 축은?', opts: ['출발지 → 목적지', '위 → 아래', '과거 → 미래'], ans: 0,
+    exp: '출발지 → 목적지입니다.', detail: '통신은 늘 ‘출발지 IP:포트 → 목적지 IP:포트’ 형태입니다. 이 대시보드의 거의 모든 화면(통신 IP·IP 분석·로그 표)이 이 축을 중심으로 구성돼 있어, 방향만 봐도 누가 누구에게 했는지 읽힙니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-packet', q: 'TCP가 연결을 여는 3단계(3-way handshake) 순서는?', opts: ['SYN → SYN-ACK → ACK', 'ACK → SYN → FIN', 'GET → POST → END'], ans: 0,
+    exp: 'SYN → SYN-ACK → ACK.', detail: '보내는 쪽이 “연결할까?(SYN)”, 받는 쪽이 “좋아, 나도(SYN-ACK)”, 다시 “그래(ACK)”로 연결을 엽니다. 포트 스캔(SYN 스캔)은 이 첫 SYN만 보내고 끝맺지 않아 ‘열렸나’만 확인합니다. GET/POST는 HTTP 메서드, FIN은 연결 종료 신호라 순서가 다릅니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-packet', q: '통신을 식별하는 다섯 값(5-tuple)에 포함되지 않는 것은?', opts: ['출발지 IP', '목적지 포트', '비밀번호'], ans: 2,
+    exp: '비밀번호는 5-tuple이 아닙니다.', detail: '5-tuple = 출발지IP·출발지포트·목적지IP·목적지포트·프로토콜, 이 다섯으로 하나의 통신(흐름)을 식별합니다. 비밀번호는 인증 정보일 뿐 통신 식별값이 아닙니다. 로그를 ‘하나의 연결’ 단위로 묶을 때 이 다섯 값을 씁니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-packet', q: '데이터를 잘게 나눠 보내는 한 조각을 뭐라 하나요?', opts: ['패킷', '포트', '도메인'], ans: 0,
+    exp: '패킷입니다.', detail: '큰 데이터는 통째로 가지 않고 ‘패킷’이라는 작은 조각으로 쪼개져 전달된 뒤 목적지에서 합쳐집니다. 센서는 이 패킷들을 들여다보며 규칙과 대조해 경보를 만듭니다. 포트는 서비스 번호, 도메인은 사이트 이름이라 다릅니다.' },
 
-  // intro-eventtypes
-  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: '‘규칙에 걸린 경보’를 뜻하는 이벤트 유형은?', opts: ['flow', 'alert', 'anomaly'], ans: 1, exp: 'alert가 탐지 규칙에 걸린 경보입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: '이 데이터에서 가장 많은 이벤트 유형은?', opts: ['honeypot', 'dns', 'tls'], ans: 0, exp: 'honeypot이 약 19만 건으로 전체의 절반 이상입니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-eventtypes', q: 'honeypot 이벤트가 위험도·시그니처 그래프엔 안 잡히는 이유는?', opts: ['경보 메타데이터(시그니처·위험도)가 없어서', '관리자만 볼 수 있어서', '너무 적어서'], ans: 0, exp: 'honeypot은 raw 연결 이벤트라 그 정보가 없어 추이·포트엔 나와도 alert 차트엔 안 잡힙니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: 'anomaly 이벤트의 의미로 옳은 것은?', opts: ['프로토콜 형식이 비정상인 이상 징후', '정상 로그인', '백업 완료'], ans: 0, exp: 'anomaly는 규칙 위반은 아니지만 형식이 어긋난 이상 징후입니다.' },
+  // ── intro-eventtypes ──
+  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: '‘규칙에 걸린 경보’를 뜻하는 이벤트 유형은?', opts: ['flow', 'alert', 'anomaly'], ans: 1,
+    exp: 'alert가 경보입니다.', detail: 'alert는 탐지 규칙(시그니처)에 걸려 남은 위험 신호입니다. flow는 한 연결이 주고받은 양의 요약, anomaly는 형식이 어긋난 이상 징후라 ‘규칙 위반 경보’와는 다릅니다. 위험도·시그니처 차트는 이 alert를 셉니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: '이 데이터에서 가장 많은 이벤트 유형은?', opts: ['honeypot', 'dns', 'tls'], ans: 0,
+    exp: 'honeypot이 가장 많습니다.', detail: '이 데이터는 honeypot 이벤트가 약 19만 건으로 전체의 절반 이상(54%)입니다. 그다음이 alert·flow입니다. 허니팟이 절반이 넘는다는 건 이 데이터가 ‘공격자가 실제로 함정을 건드린 기록’이 풍부하다는 뜻입니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-eventtypes', q: 'honeypot 이벤트가 위험도·시그니처 그래프엔 안 잡히는 이유는?', opts: ['경보 메타데이터(시그니처·위험도)가 없어서', '관리자만 볼 수 있어서', '너무 적어서'], ans: 0,
+    exp: '시그니처·위험도 정보가 없어서.', detail: 'honeypot은 ‘누가 접속했다’ 같은 raw 연결 이벤트라, alert처럼 시그니처·위험도·공격분류 같은 메타데이터가 붙지 않습니다. 그래서 그 정보를 세는 위험도·시그니처·공격유형 차트엔 안 나오지만, 추이·전체 건수·포트·통신IP 같은 ‘있는 정보’ 기반 화면엔 다 반영됩니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-eventtypes', q: 'anomaly 이벤트의 의미로 옳은 것은?', opts: ['프로토콜 형식이 비정상인 이상 징후', '정상 로그인', '백업 완료'], ans: 0,
+    exp: '형식이 어긋난 이상 징후입니다.', detail: 'anomaly는 규칙에 정면으로 걸린 건 아니지만 프로토콜 형식이 표준과 어긋난 경우를 기록합니다. 단순 구현 오류일 수도, 탐지를 피하려는 회피 시도일 수도 있어 맥락으로 판단합니다. 정상 로그인이나 백업 완료와는 무관합니다.' },
 
-  // intro-severity
-  { stage: '입문', level: '쉬움', relatedId: 'intro-severity', q: '위험도 ‘높음·중간·낮음·정보’ 중 가장 심각한 것은?', opts: ['정보', '낮음', '높음'], ans: 2, exp: '위험도 1(높음)이 가장 심각, 정보(4)는 참고용입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-severity', q: '많은 경보 중 무엇부터 볼지 줄 세우는 일을?', opts: ['우선순위 분류(triage)', '백업', '로그아웃'], ans: 0, exp: '중요도로 줄 세우는 것을 triage라 합니다. 보통 높음부터.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-severity', q: '위험도에 대한 설명으로 가장 옳은 것은?', opts: ['1차 정렬 기준이며, 맥락으로 2차 판단해야 함', '항상 절대적 진리', '높음이면 무조건 오탐'], ans: 0, exp: '위험도는 출발점일 뿐, 빈도·시간대 등 맥락으로 다시 판단합니다.' },
+  // ── intro-severity ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-severity', q: '위험도 ‘높음·중간·낮음·정보’ 중 가장 심각한 것은?', opts: ['정보', '낮음', '높음'], ans: 2,
+    exp: '높음(severity 1)이 가장 심각.', detail: 'Suricata 기준 위험도는 숫자가 작을수록 심각해서 1=높음이 최우선, 4=정보는 참고용입니다. 그래서 대응은 ‘높음’부터 봅니다. 개요의 위험도 도넛과 경보 모니터링의 위험도 필터로 높음만 걸러 볼 수 있습니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-severity', q: '많은 경보 중 무엇부터 볼지 줄 세우는 일을?', opts: ['우선순위 분류(triage)', '백업', '로그아웃'], ans: 0,
+    exp: 'triage(우선순위 분류)입니다.', detail: '경보가 수십만 건이면 전부 똑같이 볼 수 없으니 중요도로 줄을 세웁니다 — 이를 triage라 합니다. 보통 위험도 ‘높음’부터, 그다음 빈도·맥락을 봅니다. 백업·로그아웃은 전혀 다른 작업입니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-severity', q: '위험도에 대한 설명으로 가장 옳은 것은?', opts: ['1차 정렬 기준이며, 맥락으로 2차 판단해야 함', '항상 절대적 진리', '높음이면 무조건 오탐'], ans: 0,
+    exp: '1차 정렬 기준 + 맥락 2차 판단.', detail: '위험도는 ‘무엇부터 볼지’ 정하는 출발점이지 결론이 아닙니다. 정보성이라도 평소 안 보이던 곳에서 대량이면 조사하고, 높음이라도 알려진 오탐이면 우선순위를 내립니다. 그래서 위험도로 1차 정렬, 빈도·시간대·출발지로 2차 판단합니다.' },
 
-  // intro-readlog
-  { stage: '입문', level: '보통', relatedId: 'intro-readlog', q: '경보 한 줄을 읽는 권장 순서로 적절한 것은?', opts: ['위험도 → 시그니처 → 출발지/목적지', '목적지 → 색깔 → 글꼴', '시각 → 글자수 → 정렬'], ans: 0, exp: '급한 정도 → 무슨 일 → 누가 누구를, 순서가 빠릅니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-readlog', q: '이 대시보드의 시각 표시 기준은?', opts: ['한국시간(KST)', '미국 동부시간', '무작위'], ans: 0, exp: '모든 시각은 한국시간(KST)으로 표시됩니다.' },
+  // ── intro-readlog ──
+  { stage: '입문', level: '보통', relatedId: 'intro-readlog', q: '경보 한 줄을 읽는 권장 순서로 적절한 것은?', opts: ['위험도 → 시그니처 → 출발지/목적지', '목적지 → 색깔 → 글꼴', '시각 → 글자수 → 정렬'], ans: 0,
+    exp: '위험도 → 시그니처 → 출발지/목적지.', detail: '① 위험도로 ‘얼마나 급한가’, ② 시그니처로 ‘무슨 종류의 일인가’, ③ 출발지→목적지로 ‘누가 누구를’ 순으로 읽으면 빠르고 정확합니다. 같은 출발지가 반복되면 그 IP를 기억했다가 IP 분석으로 넘어가 추적합니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-readlog', q: '이 대시보드의 시각 표시 기준은?', opts: ['한국시간(KST)', '미국 동부시간', '무작위'], ans: 0,
+    exp: '한국시간(KST)입니다.', detail: '로그 원본은 보통 세계표준시(UTC)로 저장되지만, 이 대시보드는 모두 한국시간(KST, UTC+9)으로 변환해 보여 줍니다. 그래서 화면의 “새벽 3시”가 진짜 우리 시간 새벽 3시라 사건 시각을 헷갈리지 않습니다.' },
 
-  // intro-etclass
-  { stage: '입문', level: '보통', relatedId: 'intro-etclass', q: '‘ET SCAN …’으로 시작하면 어떤 성격일까요?', opts: ['정찰(포트 훑기)', '악성코드 감염', '정책 위반'], ans: 0, exp: 'ET SCAN은 정찰(스캔) 분류입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-etclass', q: '‘ET DROP …’ 분류가 뜻하는 것은?', opts: ['평판 나쁜 출발지(차단 권고)', '정상 트래픽', '관리자 로그인'], ans: 0, exp: 'ET DROP은 이미 악성으로 알려진 출발지 차단 분류입니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-etclass', q: '이름이 ‘SURICATA …’로 시작하는 이벤트는 보통?', opts: ['공개 ET 규칙', '엔진 자체가 만든 이벤트(형식 점검 등)', '관리자 계정 로그'], ans: 1, exp: 'SURICATA로 시작하면 엔진 자체 이벤트로, 형식이 표준과 다름 신호일 때가 많습니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-etclass', q: '‘ET INFO …’ 분류의 성격은?', opts: ['정보성(참고용)', '즉시 차단', '회원 정보'], ans: 0, exp: 'ET INFO는 정보성 — 탐지됐다고 곧 공격은 아닙니다.' },
+  // ── intro-etclass ──
+  { stage: '입문', level: '보통', relatedId: 'intro-etclass', q: '‘ET SCAN …’으로 시작하면 어떤 성격일까요?', opts: ['정찰(포트 훑기)', '악성코드 감염', '정책 위반'], ans: 0,
+    exp: '정찰(스캔) 분류입니다.', detail: 'ET SCAN은 ‘어디가 열렸나’ 훑어보는 정찰 분류입니다. 악성코드 감염은 ET MALWARE, 정책 위반은 ET POLICY로 따로 분류됩니다. 규칙 이름 맨 앞 단어만 봐도 성격을 빠르게 가늠할 수 있습니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-etclass', q: '‘ET DROP …’ 분류가 뜻하는 것은?', opts: ['평판 나쁜 출발지(차단 권고)', '정상 트래픽', '관리자 로그인'], ans: 0,
+    exp: '평판 나쁜 출발지 차단 분류.', detail: 'ET DROP은 이미 악성으로 알려진(블록리스트에 오른) 출발지를 잡는 분류로, ‘따질 것 없이 막아라(drop)’는 뜻입니다. 행위가 아니라 ‘출처가 나쁘다’는 평판 기반 신호라, 방화벽 선제 차단이 정석입니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-etclass', q: '이름이 ‘SURICATA …’로 시작하는 이벤트는 보통?', opts: ['공개 ET 규칙', '엔진 자체가 만든 이벤트(형식 점검 등)', '관리자 계정 로그'], ans: 1,
+    exp: '엔진 자체 이벤트입니다.', detail: '이름이 ET로 시작하면 Emerging Threats 공개 규칙, SURICATA로 시작하면 엔진이 통신을 점검하다 남긴 이벤트(예: SURICATA SSH invalid banner, STREAM …)입니다. 후자는 ‘공격’보다 ‘통신이 표준과 다르다’는 신호일 때가 많습니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-etclass', q: '‘ET INFO …’ 분류의 성격은?', opts: ['정보성(참고용)', '즉시 차단', '회원 정보'], ans: 0,
+    exp: '정보성(참고용)입니다.', detail: 'ET INFO는 “이런 트래픽이 있다”는 참고 기록이라, 탐지됐다고 곧 공격은 아닙니다. 예를 들어 화상회의의 STUN 트래픽이 ET INFO로 잡힙니다. 그래서 INFO는 늘 맥락(어디서·얼마나)으로 판단합니다.' },
 
-  // intro-tour
-  { stage: '입문', level: '쉬움', relatedId: 'intro-tour', q: '“이 주소 한 개가 한 일을 다 보고 싶다”에 답하는 화면은?', opts: ['IP 공격자 분석', '회원관리', '프로필'], ans: 0, exp: 'IP 분석은 주소 하나의 활동을 모아 보여 줍니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-tour', q: '그래프마다 해설을 펼쳐 보는 기능은?', opts: ['접이식 ‘설명 보기’', '로그아웃', '다크 모드'], ans: 0, exp: '각 그래프 옆 ‘설명 보기’로 해설을 펼칠 수 있습니다.' },
+  // ── intro-tour ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-tour', q: '“이 주소 한 개가 한 일을 다 보고 싶다”에 답하는 화면은?', opts: ['IP 공격자 분석', '회원관리', '프로필'], ans: 0,
+    exp: 'IP 분석 화면입니다.', detail: 'IP 분석은 주소 하나를 정해 그 IP의 활동(보낸 횟수·받은 횟수·유발 시그니처·노린 포트·시간선)을 한 장에 모아 줍니다. 회원관리는 사용자 계정, 프로필은 내 정보 화면이라 목적이 다릅니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-tour', q: '그래프마다 해설을 펼쳐 보는 기능은?', opts: ['접이식 ‘설명 보기’', '로그아웃', '다크 모드'], ans: 0,
+    exp: '접이식 ‘설명 보기’입니다.', detail: '각 그래프 옆 ‘설명 보기’를 누르면 그 그래프가 무엇이고 어떻게 읽는지 그 자리에서 펼쳐 볼 수 있습니다. 처음 보는 그래프도 설명을 펴 보면 바로 이해됩니다.' },
 
-  // intro-ports
-  { stage: '입문', level: '쉬움', relatedId: 'intro-ports', q: '원격접속(SSH)에 보통 쓰는 포트는?', opts: ['22', '443', '53'], ans: 0, exp: 'SSH는 22번, 웹(HTTPS)은 443, DNS는 53입니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-ports', q: '암호화 웹(HTTPS)의 기본 포트는?', opts: ['80', '443', '23'], ans: 1, exp: '80은 HTTP, 443은 HTTPS입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-ports', q: '윈도우 원격 데스크톱(RDP)의 포트는?', opts: ['3389', '25', '3478'], ans: 0, exp: 'RDP는 3389번. 스캔 표적이 자주 됩니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-ports', q: '포트 23(Telnet)에 대한 설명으로 옳은 것은?', opts: ['평문 원격접속이라 위험', '암호화돼 안전', 'DNS 전용'], ans: 0, exp: 'Telnet(23)은 평문이라 도청에 취약합니다. SSH로 대체합니다.' },
+  // ── intro-ports ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-ports', q: '원격접속(SSH)에 보통 쓰는 포트는?', opts: ['22', '443', '53'], ans: 0,
+    exp: 'SSH는 22번입니다.', detail: 'SSH(암호화 원격접속)는 22번, HTTPS(암호화 웹)는 443번, DNS(주소 변환)는 53번입니다. 그래서 22번을 노린 스캔이 많으면 ‘원격접속 문을 찾는 정찰’로 해석합니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-ports', q: '암호화 웹(HTTPS)의 기본 포트는?', opts: ['80', '443', '23'], ans: 1,
+    exp: 'HTTPS는 443번입니다.', detail: '80은 암호화 없는 HTTP, 443은 TLS로 암호화한 HTTPS입니다. 23은 평문 원격접속 Telnet이라 위험합니다. ‘주요 대상 포트’에서 443이 1위면 웹이 가장 표적이 됐다는 뜻입니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-ports', q: '윈도우 원격 데스크톱(RDP)의 포트는?', opts: ['3389', '25', '3478'], ans: 0,
+    exp: 'RDP는 3389번.', detail: 'RDP(윈도우 원격 데스크톱)는 3389번으로, 외부에 노출되면 무차별 대입·취약점 공격의 단골 표적입니다. 25는 메일(SMTP), 3478은 STUN(화상통화 보조) 포트라 다릅니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-ports', q: '포트 23(Telnet)에 대한 설명으로 옳은 것은?', opts: ['평문 원격접속이라 위험', '암호화돼 안전', 'DNS 전용'], ans: 0,
+    exp: '평문이라 위험합니다.', detail: 'Telnet(23)은 아이디·비밀번호를 암호화 없이 평문으로 주고받아, 중간에서 가로채이면 그대로 노출됩니다. 그래서 암호화된 SSH(22)로 대체하는 것이 원칙입니다. DNS는 53번이라 무관합니다.' },
 
-  // intro-tcpudp
-  { stage: '입문', level: '보통', relatedId: 'intro-tcpudp', q: 'TCP와 UDP의 차이로 옳은 것은?', opts: ['TCP는 확인·순서 보장, UDP는 빠르지만 보장 없음', '둘은 같다', 'UDP가 더 정확하다'], ans: 0, exp: 'TCP=등기우편(정확), UDP=엽서(빠름)로 비유합니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-tcpudp', q: '주로 UDP를 쓰는 통신은?', opts: ['영상통화·DNS·게임', '은행 이체', '파일 정확 전송'], ans: 0, exp: '속도가 중요한 DNS·VoIP·게임은 UDP를 자주 씁니다.' },
+  // ── intro-tcpudp ──
+  { stage: '입문', level: '보통', relatedId: 'intro-tcpudp', q: 'TCP와 UDP의 차이로 옳은 것은?', opts: ['TCP는 확인·순서 보장, UDP는 빠르지만 보장 없음', '둘은 같다', 'UDP가 더 정확하다'], ans: 0,
+    exp: 'TCP=정확, UDP=빠름.', detail: 'TCP는 연결을 맺고 순서·도착을 확인하는 ‘등기우편’이라 정확하지만 느리고, UDP는 연결 없이 던지는 ‘엽서’라 빠르지만 손실·순서 보장이 없습니다. 그래서 정확성이 중요한 웹·메일·SSH는 TCP, 속도가 중요한 영상통화·게임은 UDP를 씁니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-tcpudp', q: '주로 UDP를 쓰는 통신은?', opts: ['영상통화·DNS·게임', '은행 이체', '파일 정확 전송'], ans: 0,
+    exp: '영상통화·DNS·게임입니다.', detail: '약간의 손실보다 속도·실시간성이 중요한 영상통화(VoIP)·DNS 질의·온라인 게임은 UDP를 주로 씁니다. 반대로 은행 이체나 정확한 파일 전송처럼 한 글자도 틀리면 안 되는 통신은 TCP를 씁니다.' },
 
-  // intro-osi
-  { stage: '입문', level: '보통', relatedId: 'intro-osi', q: 'IP 주소로 ‘누구에서 누구로’ 길을 찾는 계층은?', opts: ['L3(네트워크)', 'L7(응용)', 'L4(전송)'], ans: 0, exp: 'L3=IP(길 찾기), L4=포트/TCP·UDP, L7=HTTP·DNS 등 앱입니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-osi', q: 'HTTP·DNS·TLS 같은 ‘앱 프로토콜’은 주로 어느 계층인가요?', opts: ['L7(응용)', 'L3(네트워크)', 'L2'], ans: 0, exp: '실제 앱 대화는 L7(응용)입니다. proto의 tcp/udp는 L4.' },
+  // ── intro-osi ──
+  { stage: '입문', level: '보통', relatedId: 'intro-osi', q: 'IP 주소로 ‘누구에서 누구로’ 길을 찾는 계층은?', opts: ['L3(네트워크)', 'L7(응용)', 'L4(전송)'], ans: 0,
+    exp: 'L3(네트워크)입니다.', detail: 'L3(네트워크)는 IP 주소로 길을 찾고, L4(전송)는 TCP/UDP·포트로 어느 서비스인지 정하고, L7(응용)은 HTTP·DNS 같은 실제 앱 대화를 담습니다. 로그의 출발지/목적지 IP가 바로 L3 정보입니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-osi', q: 'HTTP·DNS 같은 ‘앱 프로토콜’은 주로 어느 계층인가요?', opts: ['L7(응용)', 'L3(네트워크)', 'L2'], ans: 0,
+    exp: 'L7(응용)입니다.', detail: 'HTTP·DNS처럼 ‘실제로 무슨 앱 대화인지’는 L7(응용)입니다. proto의 tcp/udp는 L4(전송), IP는 L3(네트워크)입니다. 참고로 TLS 암호화는 전송(L4)과 응용(L7) 사이에 끼어 내용을 보호하는 계층입니다.' },
 
-  // intro-dns
-  { stage: '입문', level: '쉬움', relatedId: 'intro-dns', q: 'DNS가 하는 일은?', opts: ['도메인 이름을 IP 주소로 변환', '파일 암호화', '비밀번호 저장'], ans: 0, exp: 'DNS는 example.com 같은 이름을 IP로 바꿔 주는 전화번호부입니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-dns', q: 'DNS가 보안에서 중요한 이유로 옳은 것은?', opts: ['악성코드가 명령서버 주소를 DNS로 찾기도 해서', 'DNS는 항상 안전해서', '로그가 안 남아서'], ans: 0, exp: '수상한 도메인 질의는 감염·C2의 단서가 됩니다.' },
+  // ── intro-dns ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-dns', q: 'DNS가 하는 일은?', opts: ['도메인 이름을 IP 주소로 변환', '파일 암호화', '비밀번호 저장'], ans: 0,
+    exp: '도메인을 IP로 바꿉니다.', detail: 'DNS는 사람이 쓰는 이름(example.com)을 컴퓨터가 쓰는 IP(203.0.113.5)로 바꿔 주는 ‘인터넷 전화번호부’입니다. 거의 모든 통신의 첫 단계라 로그가 많고, 보통 UDP 53번을 씁니다. 암호화나 비밀번호 저장과는 무관합니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-dns', q: 'DNS가 보안에서 중요한 이유로 옳은 것은?', opts: ['악성코드가 명령서버 주소를 DNS로 찾기도 해서', 'DNS는 항상 안전해서', '로그가 안 남아서'], ans: 0,
+    exp: '악성코드도 DNS로 C2를 찾기 때문.', detail: '감염된 PC의 악성코드도 명령서버(C2) 주소를 DNS로 조회합니다. 그래서 평소 안 가던 수상한 도메인 질의가 보이면 감염·통신의 단서가 됩니다. DNS도 악용·위조될 수 있으니 ‘항상 안전’은 틀린 설명입니다.' },
 
-  // intro-http
-  { stage: '입문', level: '쉬움', relatedId: 'intro-http', q: 'HTTP와 HTTPS의 차이는?', opts: ['HTTPS는 HTTP에 TLS 암호화를 씌운 것', '완전히 다른 기술', 'HTTP가 더 안전'], ans: 0, exp: 'HTTPS = HTTP + TLS(443). 내용이 암호화됩니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-http', q: 'HTTP 요청에서 ‘가져오기’에 해당하는 메서드는?', opts: ['GET', 'POST', 'DROP'], ans: 0, exp: 'GET=가져오기, POST=보내기입니다.' },
+  // ── intro-http ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-http', q: 'HTTP와 HTTPS의 차이는?', opts: ['HTTPS는 HTTP에 TLS 암호화를 씌운 것', '완전히 다른 기술', 'HTTP가 더 안전'], ans: 0,
+    exp: 'HTTPS = HTTP + TLS.', detail: 'HTTP는 평문이라 중간에서 내용이 그대로 보이고, 여기에 TLS 암호화를 더한 것이 HTTPS(443번)입니다. 따라서 HTTPS가 더 안전합니다. 같은 웹 통신 규칙에 암호화 유무만 다른 것이라 ‘완전히 다른 기술’은 아닙니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-http', q: 'HTTP 요청에서 ‘가져오기’에 해당하는 메서드는?', opts: ['GET', 'POST', 'DROP'], ans: 0,
+    exp: 'GET=가져오기.', detail: 'GET은 자료를 가져오는(읽는) 요청, POST는 자료를 보내는(쓰는) 요청입니다. 웹 공격은 이 GET의 URL이나 POST의 본문 속에 끼어 들어오는 경우가 많습니다. DROP은 방화벽 차단 동작이라 HTTP 메서드가 아닙니다.' },
 
-  // intro-tls
-  { stage: '입문', level: '보통', relatedId: 'intro-tls', q: 'TLS가 보호하는 것은?', opts: ['통신 내용(도청·위조 방지)', '전기 요금', '키보드'], ans: 0, exp: 'TLS는 통신을 암호화해 중간에서 못 읽게 합니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-tls', q: 'TLS로 암호화된 통신에서도 로그에 남는 것은?', opts: ['누가·언제·어떤 인증서로 연결했는지(메타데이터)', '비밀번호 평문', '아무것도 안 남음'], ans: 0, exp: '내용은 못 봐도 연결 메타데이터는 남아 탐지에 쓰입니다.' },
+  // ── intro-tls ──
+  { stage: '입문', level: '보통', relatedId: 'intro-tls', q: 'TLS가 보호하는 것은?', opts: ['통신 내용(도청·위조 방지)', '전기 요금', '키보드'], ans: 0,
+    exp: '통신 내용을 보호합니다.', detail: 'TLS는 통신을 암호화해 중간에서 누가 엿봐도(도청) 내용을 못 읽게 하고, 인증서로 상대가 진짜인지 확인해 위조도 막습니다(옛 이름 SSL). HTTPS의 ‘S’가 바로 이 TLS입니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-tls', q: 'TLS로 암호화된 통신에서도 로그에 남는 것은?', opts: ['누가·언제·어떤 인증서로 연결했는지(메타데이터)', '비밀번호 평문', '아무것도 안 남음'], ans: 0,
+    exp: '연결 메타데이터는 남습니다.', detail: 'TLS는 ‘내용’을 가리지만 ‘누가 누구와, 언제, 어떤 인증서·암호 방식으로 연결했는지’ 같은 메타데이터는 남습니다. 그래서 내용은 못 봐도 수상한 인증서나 비정상 TLS 패턴으로 위협을 탐지할 수 있습니다. 암호화돼 있으니 비밀번호 평문은 남지 않습니다.' },
 
-  // intro-honeypot-basic
-  { stage: '입문', level: '쉬움', relatedId: 'intro-honeypot-basic', q: '허니팟(honeypot)이란?', opts: ['공격자를 유인·관찰하는 미끼 함정 시스템', '백신', '방화벽'], ans: 0, exp: '허니팟은 일부러 취약한 척 노출한 미끼 서버입니다.' },
-  { stage: '입문', level: '보통', relatedId: 'intro-honeypot-basic', q: '허니팟 활동의 신뢰도가 높은 이유는?', opts: ['정상 사용자는 갈 이유가 없어 사실상 전부 악의적', '관리자만 접근해서', '항상 높음 위험도라'], ans: 0, exp: '함정엔 정상 접근이 없어 오탐이 거의 없습니다.' },
+  // ── intro-honeypot-basic ──
+  { stage: '입문', level: '쉬움', relatedId: 'intro-honeypot-basic', q: '허니팟(honeypot)이란?', opts: ['공격자를 유인·관찰하는 미끼 함정 시스템', '백신', '방화벽'], ans: 0,
+    exp: '미끼 함정 시스템입니다.', detail: '허니팟은 일부러 허술하게 꾸민 ‘미끼 서버’로, 공격자를 끌어들여 그 수법을 안전하게 관찰·기록합니다. 백신은 악성코드 제거, 방화벽은 트래픽 차단이라 목적이 다릅니다. 이 데이터는 T-Pot 허니팟에서 나왔습니다.' },
+  { stage: '입문', level: '보통', relatedId: 'intro-honeypot-basic', q: '허니팟 활동의 신뢰도가 높은 이유는?', opts: ['정상 사용자는 갈 이유가 없어 사실상 전부 악의적', '관리자만 접근해서', '항상 높음 위험도라'], ans: 0,
+    exp: '정상 접근이 없어서.', detail: '허니팟은 실제 서비스가 아니라 함정이라, 정상 사용자가 접근할 이유가 전혀 없습니다. 따라서 거기서 관측된 활동은 거의 다 악의적이라 오탐이 매우 적은 ‘깨끗한 공격 신호’입니다. 위험도가 높아서가 아니라 ‘접근 자체가 비정상’이라 신뢰도가 높은 것입니다.' },
 
-  // intro-attacker-victim
-  { stage: '입문', level: '보통', relatedId: 'intro-attacker-victim', q: '보통 ‘공격자’에 가까운 쪽은?', opts: ['통신을 보낸 출발지', '통신을 받은 목적지', '항상 목적지'], ans: 0, exp: '보낸 쪽(출발지)이 공격자, 받은 쪽(목적지)이 표적일 때가 많습니다.' },
-  { stage: '입문', level: '어려움', relatedId: 'intro-attacker-victim', scenario: true, q: '[시나리오] 내부 PC가 ‘출발지’가 되어 외부로 신호를 보냅니다. 가능한 해석은?', opts: ['감염돼 외부 C2로 신호를 보내는 중일 수 있음', '무조건 정상', '무조건 외부 공격자'], ans: 0, exp: '감염된 내부 PC가 출발지가 되기도 합니다. 맥락으로 판단하세요.' },
+  // ── intro-attacker-victim ──
+  { stage: '입문', level: '보통', relatedId: 'intro-attacker-victim', q: '보통 ‘공격자’에 가까운 쪽은?', opts: ['통신을 보낸 출발지', '통신을 받은 목적지', '항상 목적지'], ans: 0,
+    exp: '보통 출발지가 공격자.', detail: '공격을 ‘보낸 쪽(출발지)’이 공격자, ‘받은 쪽(목적지)’이 표적일 때가 많습니다. IP 분석의 ‘출발지로(보낸 횟수)’가 크면 공격을 많이 한 쪽으로 가늠합니다. 다만 감염된 내부 PC가 출발지가 되기도 하니 맥락과 함께 봅니다.' },
+  { stage: '입문', level: '어려움', relatedId: 'intro-attacker-victim', scenario: true, q: '[시나리오] 내부 PC가 ‘출발지’가 되어 외부로 신호를 보냅니다. 가능한 해석은?', opts: ['감염돼 외부 C2로 신호를 보내는 중일 수 있음', '무조건 정상', '무조건 외부 공격자'], ans: 0,
+    exp: '감염된 PC의 C2 통신일 수 있음.', detail: '내부 PC가 외부로 규칙적인 신호를 보내면, 악성코드에 감염돼 명령서버(C2)와 교신하는 중일 수 있습니다. 그래서 ‘출발지=항상 외부 공격자’도, ‘내부=항상 안전’도 아닙니다. 사설/공인 IP·시그니처·빈도 같은 맥락으로 확정합니다.' },
 
-  // intro-timezone
-  { stage: '입문', level: '보통', relatedId: 'intro-timezone', q: '추이에서 봉우리가 튄 시각을 더 파고들려면?', opts: ['로그 탐색에서 그 구간으로 기간을 좁힌다', '로그아웃한다', '색을 바꾼다'], ans: 0, exp: '봉우리 시각 → 기간 필터로 좁혀 그때 무슨 일이 있었는지 봅니다.' },
+  // ── intro-timezone ──
+  { stage: '입문', level: '보통', relatedId: 'intro-timezone', q: '추이에서 봉우리가 튄 시각을 더 파고들려면?', opts: ['로그 탐색에서 그 구간으로 기간을 좁힌다', '로그아웃한다', '색을 바꾼다'], ans: 0,
+    exp: '로그 탐색에서 기간을 좁힙니다.', detail: '개요 ‘이벤트 추이’에서 봉우리가 보이면, 로그 탐색으로 가서 시작·종료 시각을 그 구간으로 좁혀 무슨 유형·시그니처가 몰렸는지 봅니다. 이렇게 ‘시간 → 내용’으로 좁혀 들어가는 것이 위협 헌팅의 기본 흐름입니다.' },
 
-  // intro-permissions
-  { stage: '입문', level: '보통', relatedId: 'intro-permissions', q: '로그 원문(payload)을 열 수 있는 등급은?', opts: ['관리자만', '일반 이상 누구나', '관계자 이상'], ans: 0, exp: '원문은 민감해 관리자만 보고, 열람은 감사 로그에 남습니다.' },
-  { stage: '입문', level: '쉬움', relatedId: 'intro-permissions', q: '로그 탐색·분석까지 볼 수 있는 등급은?', opts: ['관계자(STAFF) 이상', '일반만', '아무도 못 봄'], ans: 0, exp: '일반은 개요 요약, 관계자는 로그 탐색·분석, 관리자는 원문·회원·감사까지.' },
+  // ── intro-permissions ──
+  { stage: '입문', level: '보통', relatedId: 'intro-permissions', q: '로그 원문(payload)을 열 수 있는 등급은?', opts: ['관리자만', '일반 이상 누구나', '관계자 이상'], ans: 0,
+    exp: '관리자만 가능합니다.', detail: '로그 원문(payload)은 실제 통신 내용이라 가장 민감해, 관리자(ADMIN)만 열 수 있고 일반·관계자에겐 ‘관리자 전용’으로 표시됩니다. 관리자가 열람하면 그 사실이 감사 로그에 남습니다 — ‘알 필요가 있는 사람만 본다’는 최소 권한 원칙입니다.' },
+  { stage: '입문', level: '쉬움', relatedId: 'intro-permissions', q: '로그 탐색·분석까지 볼 수 있는 등급은?', opts: ['관계자(STAFF) 이상', '일반만', '아무도 못 봄'], ans: 0,
+    exp: '관계자(STAFF) 이상입니다.', detail: '일반(GENERAL)은 개요 요약 중심, 관계자(STAFF)는 로그 탐색·IP/시그니처 분석까지, 관리자(ADMIN)는 원문·회원관리·감사 로그까지 봅니다. 민감할수록 높은 등급만 보도록 단계가 나뉘어 있습니다.' },
 ];

@@ -45,7 +45,8 @@ export interface QuizQ {
   q: string;
   opts: string[];
   ans: number;
-  exp: string;
+  exp: string;        // 짧은 정답 이유
+  detail?: string;    // 자세한 해설 (있으면 exp 대신 이걸 보여 줌)
   relatedId?: string;
   scenario?: boolean;
 }
