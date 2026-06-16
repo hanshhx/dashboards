@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Circle, Target, ExternalLink, Search, ListChecks, BookOpen, Lock, Trophy, ChevronRight } from 'lucide-react';
+import { CheckCircle2, Circle, Target, ExternalLink, Search, ListChecks, BookOpen, Lock, Trophy, ChevronRight, ChevronLeft, Check } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { LearnTabs } from '@/components/LearnTabs';
 import { SEV_COLOR, SEV_LABEL } from '@/components/ui';
 import { LearnArt, ART_CAPTION } from '@/components/learn-art';
 import { LEARN_ITEMS, STAGES, STAGE_DESC, type Stage, type LearnItem } from '@/lib/learn';
-import { loadCleared, isUnlocked, loadDone, toggleDone as toggleDoneStore, markDoneOnce } from '@/lib/learn-progress';
+import { loadCleared, isUnlocked, loadDone, toggleDone as toggleDoneStore, markDoneOnce, pullProgress } from '@/lib/learn-progress';
 
 const STUN_SOURCES = [
   { label: 'Emerging Threats 공식 안내', url: 'https://community.emergingthreats.net/t/if-you-get-the-alert-et-info-session-traversal-utilities-for-nat-stun-binding-request/751' },
@@ -17,6 +17,9 @@ const STUN_SOURCES = [
 ];
 
 const STAGE_COLOR: Record<Stage, string> = { 입문: '#16a34a', 기초: '#2563eb', 심화: '#ea580c' };
+
+// 전 항목을 단계 → 순서로 펼친 목록(이전/다음 이동용)
+const ORDERED = [...LEARN_ITEMS].sort((a, b) => STAGES.indexOf(a.level) - STAGES.indexOf(b.level) || a.order - b.order);
 
 export default function LearnPage() {
   const [query, setQuery] = useState('');
@@ -33,6 +36,7 @@ export default function LearnPage() {
     setReady(true);
     const q = new URLSearchParams(window.location.search).get('item');
     if (q && LEARN_ITEMS.some((i) => i.id === q)) setId(q);
+    pullProgress().then(() => { setDone(loadDone()); setCleared(loadCleared()); });
   }, []);
 
   const item = LEARN_ITEMS.find((s) => s.id === id)!;
@@ -40,7 +44,22 @@ export default function LearnPage() {
   const isDone = done.includes(item.id);
   const itemUnlocked = isUnlocked(item.level, cleared);
 
+  // 이전/다음 항목, 전체 진도율
+  const ci = ORDERED.findIndex((s) => s.id === id);
+  const prevItem = ci > 0 ? ORDERED[ci - 1] : null;
+  const nextItem = ci < ORDERED.length - 1 ? ORDERED[ci + 1] : null;
+  const nextUnlocked = nextItem ? isUnlocked(nextItem.level, cleared) : false;
+  const doneInItems = LEARN_ITEMS.filter((s) => done.includes(s.id)).length;
+  const pct = Math.round((doneInItems / LEARN_ITEMS.length) * 100);
+  const allDone = doneInItems === LEARN_ITEMS.length;
+
   const toggleDone = () => setDone(toggleDoneStore(item.id));
+  const go = (s: LearnItem) => {
+    setId(s.id);
+    setMode('full');
+    try { window.history.replaceState(null, '', `/learn?item=${s.id}`); } catch { /* ignore */ }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
 
   // 본문을 끝까지 스크롤하면(끝 지점이 화면에 ~1초 머무르면) 자동으로 '완료' 처리. 이미 완료면 동작 안 함.
   useEffect(() => {
@@ -64,6 +83,7 @@ export default function LearnPage() {
       || (s.tag ?? '').toLowerCase().includes(q)
       || s.objective.toLowerCase().includes(q)
       || s.summary.some((x) => x.toLowerCase().includes(q))
+      || s.blocks.some((b) => b.text.toLowerCase().includes(q))
       || (s.terms ?? []).some((t) => t.term.toLowerCase().includes(q) || t.def.toLowerCase().includes(q));
   };
 
@@ -84,6 +104,25 @@ export default function LearnPage() {
     <Shell title="학습하기">
       <LearnTabs />
 
+      {/* 전체 학습 진도 */}
+      {ready && (
+        <div className="mt-4 rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Trophy size={16} className={allDone ? 'text-amber-500' : 'text-slate-400'} />
+              전체 학습 진도
+            </div>
+            <div className="text-sm text-slate-500">
+              {doneInItems}/{LEARN_ITEMS.length} · {pct}%
+              {allDone && <span className="ml-2 inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 font-semibold">완주</span>}
+            </div>
+          </div>
+          <div className="mt-2.5 h-2 rounded-full bg-slate-100 dark:bg-white/10 overflow-hidden">
+            <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: allDone ? '#f59e0b' : '#2563eb' }} />
+          </div>
+        </div>
+      )}
+
       {/* 단계 진행 요약 */}
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
         {STAGES.map((stage, i) => {
@@ -94,7 +133,7 @@ export default function LearnPage() {
             <div key={stage} className={`rounded-xl border p-3 ${unlocked ? 'bg-white dark:bg-[#15161f] border-slate-200 dark:border-white/10' : 'bg-slate-50 dark:bg-white/[.02] border-dashed border-slate-300 dark:border-white/10'}`}>
               <div className="flex items-center gap-2">
                 <span className="grid place-items-center w-6 h-6 rounded-full text-white text-xs font-bold" style={{ background: unlocked ? c : '#94a3b8' }}>
-                  {clr ? '✓' : i + 1}
+                  {clr ? <Check size={14} /> : i + 1}
                 </span>
                 <span className="font-semibold text-sm" style={{ color: unlocked ? c : undefined }}>{stage}</span>
                 {clr ? <Trophy size={14} className="text-amber-500 ml-auto" />
@@ -103,7 +142,7 @@ export default function LearnPage() {
               <div className="text-[11px] text-slate-500 mt-1.5 leading-snug">{STAGE_DESC[stage]}</div>
               {ready && (
                 <div className="text-[11px] mt-1.5 font-medium" style={{ color: unlocked ? c : '#94a3b8' }}>
-                  {clr ? '클리어 완료' : unlocked ? `학습 ${stageDoneCount(stage)}/${stageTotal(stage)} · 퀴즈로 통과하기` : '🔒 이전 단계 통과 시 열림'}
+                  {clr ? '클리어 완료' : unlocked ? `학습 ${stageDoneCount(stage)}/${stageTotal(stage)} · 퀴즈로 통과하기` : '이전 단계 통과 시 열림'}
                 </div>
               )}
             </div>
@@ -147,7 +186,7 @@ export default function LearnPage() {
                     const on = s.id === id;
                     const sDone = done.includes(s.id);
                     return (
-                      <button key={s.id} onClick={() => { setId(s.id); setMode('full'); }}
+                      <button key={s.id} onClick={() => go(s)}
                         className={`w-full text-left rounded-xl border p-3 transition ${
                           on ? 'border-accent-600 bg-accent-600/5'
                              : 'border-slate-200 dark:border-white/10 bg-white dark:bg-[#15161f] hover:bg-slate-50 dark:hover:bg-white/5'
@@ -293,9 +332,43 @@ export default function LearnPage() {
             </Link>
           </div>
 
+          {/* 이전 / 다음 항목 이동 */}
+          <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 grid grid-cols-2 gap-3">
+            {prevItem ? (
+              <button onClick={() => go(prevItem)}
+                className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/10 p-3 text-left hover:bg-slate-50 dark:hover:bg-white/5">
+                <ChevronLeft size={18} className="shrink-0 text-slate-400" />
+                <span className="min-w-0">
+                  <span className="block text-[11px] text-slate-400">이전</span>
+                  <span className="block text-sm font-medium truncate">{prevItem.name}</span>
+                </span>
+              </button>
+            ) : <div />}
+            {nextItem ? (
+              nextUnlocked ? (
+                <button onClick={() => go(nextItem)}
+                  className="flex items-center justify-end gap-2 rounded-lg border border-slate-200 dark:border-white/10 p-3 text-right hover:bg-slate-50 dark:hover:bg-white/5">
+                  <span className="min-w-0">
+                    <span className="block text-[11px] text-slate-400">다음</span>
+                    <span className="block text-sm font-medium truncate">{nextItem.name}</span>
+                  </span>
+                  <ChevronRight size={18} className="shrink-0 text-slate-400" />
+                </button>
+              ) : (
+                <div className="flex items-center justify-end gap-2 rounded-lg border border-dashed border-slate-300 dark:border-white/10 p-3 text-right opacity-80">
+                  <span className="min-w-0">
+                    <span className="block text-[11px] text-slate-400">다음 단계</span>
+                    <span className="block text-sm font-medium text-slate-400 truncate">퀴즈 통과 후 열림</span>
+                  </span>
+                  <Lock size={16} className="shrink-0 text-slate-400" />
+                </div>
+              )
+            ) : <div />}
+          </div>
+
           {/* 끝까지 읽으면 자동 완료되는 지점 */}
           <div ref={endRef} className="h-4" />
-          {!isDone && <div className="mt-1 text-center text-[11px] text-slate-400">여기까지 읽으면 자동으로 ‘완료’ 표시돼요</div>}
+          {!isDone && <div className="mt-1 text-center text-[11px] text-slate-400">여기까지 읽으면 자동으로 완료로 표시됩니다</div>}
         </div>
         )}
       </div>

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { GraduationCap, ListChecks } from 'lucide-react';
+import { GraduationCap, ListChecks, NotebookPen, BookMarked, Footprints } from 'lucide-react';
 
 // 두 학습 페이지(설명/퀴즈) 공통 상단 탭
 export function LearnTabs() {
@@ -21,8 +21,11 @@ export function LearnTabs() {
   };
   return (
     <div className="flex gap-2">
-      {tab('/learn', '시그니처 설명', GraduationCap)}
+      {tab('/learn', '학습', GraduationCap)}
       {tab('/learn/quiz', '퀴즈', ListChecks)}
+      {tab('/learn/review', '복습·오답노트', NotebookPen)}
+      {tab('/learn/glossary', '용어집', BookMarked)}
+      {tab('/learn/case', '사례 연구', Footprints)}
     </div>
   );
 }

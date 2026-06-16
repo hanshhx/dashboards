@@ -2,11 +2,11 @@
 
 import { useState, useEffect, useMemo, type ReactNode } from 'react';
 import Link from 'next/link';
-import { RotateCcw, ArrowRight, Lock, Trophy, ChevronRight, GraduationCap, Dumbbell, PenLine } from 'lucide-react';
+import { RotateCcw, ArrowRight, Lock, Trophy, ChevronRight, GraduationCap, Dumbbell, PenLine, Check } from 'lucide-react';
 import { Shell } from '@/components/Shell';
 import { LearnTabs } from '@/components/LearnTabs';
 import { QUIZ, STAGES, STAGE_DESC, type QuizQ, type Stage } from '@/lib/learn';
-import { loadCleared, markCleared, isUnlocked, PASS_RATIO, loadNotes, saveNote, qKey } from '@/lib/learn-progress';
+import { loadCleared, markCleared, isUnlocked, PASS_RATIO, loadNotes, saveNote, qKey, recordResult, pullProgress } from '@/lib/learn-progress';
 
 const LEVEL_COLOR: Record<QuizQ['level'], string> = { 쉬움: '#16a34a', 보통: '#ea580c', 어려움: '#dc2626' };
 const STAGE_COLOR: Record<Stage, string> = { 입문: '#16a34a', 기초: '#2563eb', 심화: '#ea580c' };
@@ -40,6 +40,7 @@ export default function QuizPage() {
     const firstOpen = STAGES.find((s) => isUnlocked(s, c) && !c.includes(s))
       ?? [...STAGES].reverse().find((s) => isUnlocked(s, c)) ?? '입문';
     setStage(firstOpen);
+    pullProgress().then(() => { setCleared(loadCleared()); setNotes(loadNotes()); });
   }, []);
 
   // 단계의 전체 문제 (연습용)
@@ -180,7 +181,7 @@ export default function QuizPage() {
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div>
                 <div className="font-semibold" style={{ color: STAGE_COLOR[stage] }}>
-                  {stage} 단계 {cleared.includes(stage) && <span className="text-xs text-amber-500">· 통과함 ✓</span>}
+                  {stage} 단계 {cleared.includes(stage) && <span className="inline-flex items-center gap-1 text-xs text-amber-500">· 통과함 <Check size={12} /></span>}
                 </div>
                 <div className="text-xs text-slate-500 mt-0.5">{STAGE_DESC[stage]}</div>
               </div>
@@ -200,7 +201,7 @@ export default function QuizPage() {
               <div className="mt-3 space-y-4">
                 {stageItems.map(({ q, i }, idx) =>
                   renderQuestion(q, i, idx, stageItems.length, practicePicked,
-                    (oi) => setPracticePicked((p) => (i in p ? p : { ...p, [i]: oi })),
+                    (oi) => { setPracticePicked((p) => (i in p ? p : { ...p, [i]: oi })); recordResult(qKey(q.q), oi === q.ans); },
                     () => setPracticePicked((p) => { const n = { ...p }; delete n[i]; return n; })))}
               </div>
             </>
@@ -268,7 +269,7 @@ export default function QuizPage() {
                   <div className="mt-4 space-y-4">
                     {examIds.map((i, idx) =>
                       renderQuestion(QUIZ[i], i, idx, examIds.length, examPicked,
-                        (oi) => setExamPicked((p) => (i in p ? p : { ...p, [i]: oi })),
+                        (oi) => { setExamPicked((p) => (i in p ? p : { ...p, [i]: oi })); recordResult(qKey(QUIZ[i].q), oi === QUIZ[i].ans); },
                         () => setExamPicked((p) => { const n = { ...p }; delete n[i]; return n; })))}
                   </div>
                 </>

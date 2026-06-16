@@ -280,6 +280,209 @@ function IntroTermsArt() {
   );
 }
 
+function HandshakeArt() {
+  return (
+    <Svg vb="0 0 480 168">
+      <Box x={24} y={14} w={130} h={34} label="출발지(src)" tone="accent" fs={11} />
+      <Box x={326} y={14} w={130} h={34} label="목적지(dst)" fs={11} />
+      <line x1={89} y1={48} x2={89} y2={150} stroke="currentColor" strokeOpacity={0.18} />
+      <line x1={391} y1={48} x2={391} y2={150} stroke="currentColor" strokeOpacity={0.18} />
+      <Arrow from={[89, 70]} to={[391, 82]} label="① SYN — 연결하자" tone="accent" />
+      <Arrow from={[391, 100]} to={[89, 112]} label="② SYN-ACK — 좋다" />
+      <Arrow from={[89, 130]} to={[391, 142]} label="③ ACK — 시작" tone="accent" />
+    </Svg>
+  );
+}
+
+function EventTypesArt() {
+  return (
+    <Svg vb="0 0 480 158">
+      <Box x={16} y={18} w={224} h={46} label="alert — 규칙에 걸린 경보" sub="시그니처·위험도 있음" tone="danger" fs={11} />
+      <Box x={248} y={18} w={216} h={46} label="anomaly — 형식 이상" sub="프로토콜이 비정상" tone="warn" fs={11} />
+      <Box x={16} y={72} w={224} h={46} label="flow — 연결 요약" sub="주고받은 양" tone="accent" fs={11} />
+      <Box x={248} y={72} w={216} h={46} label="honeypot — 미끼 상호작용" sub="가장 많음 · 약 54%" tone="ok" fs={11} />
+      <Box x={16} y={126} w={448} h={26} label="유형마다 담는 정보가 다릅니다. honeypot엔 시그니처·위험도가 없습니다" fs={11} />
+    </Svg>
+  );
+}
+
+function LayersArt() {
+  return (
+    <Svg vb="0 0 480 152">
+      <Box x={70} y={14} w={340} h={36} label="L7 응용 — HTTP · DNS · TLS" sub="무슨 앱인가" tone="accent" fs={11} />
+      <Box x={70} y={58} w={340} h={36} label="L4 전송 — 포트 · TCP / UDP" sub="어느 서비스인가" fs={11} />
+      <Box x={70} y={102} w={340} h={36} label="L3 네트워크 — IP 주소" sub="누구에서 누구로" fs={11} />
+    </Svg>
+  );
+}
+
+function TcpUdpArt() {
+  return (
+    <Svg vb="0 0 480 156">
+      <Box x={20} y={16} w={210} h={46} label="TCP — 등기우편" sub="확인·순서 보장" tone="accent" fs={11} />
+      <Box x={250} y={16} w={210} h={46} label="UDP — 엽서" sub="빠르지만 보장 없음" tone="warn" fs={11} />
+      <Box x={20} y={70} w={210} h={32} label="이체 · 파일 전송 · 웹" fs={10.5} />
+      <Box x={250} y={70} w={210} h={32} label="영상통화 · DNS · 게임" fs={10.5} />
+      <Box x={20} y={110} w={440} h={28} label="정확성이 중요하면 TCP, 속도가 중요하면 UDP" fs={11} />
+    </Svg>
+  );
+}
+
+function DnsArt() {
+  return (
+    <Svg vb="0 0 480 138">
+      <Box x={16} y={48} w={150} h={44} label="도메인 이름" sub="example.com" tone="accent" fs={11} />
+      <Arrow from={[166, 70]} to={[212, 70]} />
+      <Box x={212} y={48} w={118} h={44} label="DNS 서버" sub="전화번호부" fs={11} />
+      <Arrow from={[330, 70]} to={[376, 70]} />
+      <Box x={376} y={48} w={88} h={44} label="IP 주소" sub="203.0.113.5" fs={11} />
+      <Box x={16} y={104} w={448} h={26} label="감염 PC도 명령서버(C2) 주소를 DNS로 찾습니다 — 낯선 질의는 단서" tone="danger" fs={11} />
+    </Svg>
+  );
+}
+
+function PermsArt() {
+  return (
+    <Svg vb="0 0 480 156">
+      <rect x={20} y={12} width={440} height={132} rx={10} fill="#2563eb" fillOpacity={0.06} stroke="#2563eb" strokeOpacity={0.5} />
+      <text x={38} y={30} fontSize={11} fontWeight={600} fill="#2563eb">관리자 — 로그 원문(payload)까지 전부</text>
+      <rect x={46} y={40} width={388} height={96} rx={9} fill="currentColor" fillOpacity={0.04} stroke="currentColor" strokeOpacity={0.3} />
+      <text x={64} y={58} fontSize={11} fontWeight={600} fill="currentColor">관계자 — 로그 탐색 · IP · 시그니처 분석</text>
+      <rect x={72} y={68} width={336} height={60} rx={8} fill="currentColor" fillOpacity={0.06} stroke="currentColor" strokeOpacity={0.35} />
+      <text x={90} y={86} fontSize={11} fontWeight={600} fill="currentColor">일반 — 개요(요약)</text>
+      <text x={90} y={106} fontSize={10.5} fill="currentColor" opacity={0.65}>바깥 등급일수록 더 넓게 봅니다</text>
+    </Svg>
+  );
+}
+
+function EtClassArt() {
+  const rows: { p: string; m: string; tone: Tone }[] = [
+    { p: 'ET SCAN', m: '정찰 — 포트 훑기', tone: 'warn' },
+    { p: 'ET DROP', m: '평판 나쁜 출발지 — 차단 권고', tone: 'danger' },
+    { p: 'ET MALWARE', m: '악성코드 — C2 · 트로이목마', tone: 'danger' },
+    { p: 'ET POLICY', m: '정책 위반 — 평문 로그인 등', tone: 'warn' },
+    { p: 'ET INFO', m: '정보성 — 참고(공격 아님)', tone: 'ok' },
+    { p: 'SURICATA', m: '엔진 자체 이벤트 — 형식 점검', tone: 'base' },
+  ];
+  return (
+    <Svg vb="0 0 480 178">
+      {rows.map((r, i) => {
+        const y = 10 + i * 28;
+        return (
+          <g key={i}>
+            <Box x={16} y={y} w={146} h={22} label={r.p} tone={r.tone} fs={10.5} />
+            <text x={176} y={y + 15} fontSize={11} fill="currentColor" opacity={0.85}>{r.m}</text>
+          </g>
+        );
+      })}
+    </Svg>
+  );
+}
+
+function SynScanArt() {
+  return (
+    <Svg vb="0 0 480 168">
+      <Box x={24} y={14} w={130} h={34} label="스캐너" sub="공격자" tone="danger" fs={11} />
+      <Box x={326} y={14} w={130} h={34} label="대상 : 포트" fs={11} />
+      <line x1={89} y1={48} x2={89} y2={150} stroke="currentColor" strokeOpacity={0.18} />
+      <line x1={391} y1={48} x2={391} y2={150} stroke="currentColor" strokeOpacity={0.18} />
+      <Arrow from={[89, 70]} to={[391, 82]} label="① SYN" tone="danger" />
+      <Arrow from={[391, 100]} to={[89, 112]} label="② SYN-ACK = 열림" tone="ok" />
+      <Arrow from={[89, 130]} to={[391, 142]} label="③ RST — 연결은 안 맺음(스텔스)" tone="danger" dash />
+    </Svg>
+  );
+}
+
+function ProtoDonutArt() {
+  const C = 2 * Math.PI * 44;
+  return (
+    <Svg vb="0 0 480 158">
+      <g transform="translate(96,80)">
+        <circle r={44} fill="none" stroke="currentColor" strokeOpacity={0.08} strokeWidth={22} />
+        <g transform="rotate(-90)">
+          <circle r={44} fill="none" stroke="#2563eb" strokeOpacity={0.85} strokeWidth={22} strokeDasharray={`${C * 0.58} ${C}`} />
+          <circle r={44} fill="none" stroke="#94a3b8" strokeOpacity={0.8} strokeWidth={22} strokeDasharray={`${C * 0.28} ${C}`} strokeDashoffset={-C * 0.58} />
+          <circle r={44} fill="none" stroke="#ea580c" strokeOpacity={0.8} strokeWidth={22} strokeDasharray={`${C * 0.14} ${C}`} strokeDashoffset={-C * 0.86} />
+        </g>
+      </g>
+      <rect x={186} y={28} width={12} height={12} rx={3} fill="#2563eb" fillOpacity={0.85} />
+      <text x={206} y={38} fontSize={11} fill="currentColor" opacity={0.85}>알려진 프로토콜 (TCP·UDP·HTTP·DNS…)</text>
+      <rect x={186} y={64} width={12} height={12} rx={3} fill="#94a3b8" fillOpacity={0.85} />
+      <text x={206} y={74} fontSize={11} fill="currentColor" opacity={0.85}>unknown — 앱 종류를 못 정함</text>
+      <rect x={186} y={100} width={12} height={12} rx={3} fill="#ea580c" fillOpacity={0.85} />
+      <text x={206} y={110} fontSize={11} fill="currentColor" opacity={0.85}>failed — 분석 실패</text>
+    </Svg>
+  );
+}
+
+function CmdInjectionArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={46} w={190} h={52} label="입력칸 (URL·폼)" sub="; cat /etc/passwd" tone="danger" fs={11} />
+      <Arrow from={[206, 72]} to={[300, 72]} label="명령 끼워넣기" tone="danger" />
+      <Box x={300} y={46} w={164} h={52} label="서버 OS 셸" sub="의도치 않은 명령 실행" tone="danger" fs={11} />
+      <Box x={16} y={112} w={448} h={28} label="SQL 주입이 DB를 노린다면, 명령 주입은 서버 운영체제를 직접 노립니다" fs={11} />
+    </Svg>
+  );
+}
+
+function DosAmpArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={14} y={40} w={120} h={44} label="공격자" sub="출발지=피해자로 위조" tone="danger" fs={10.5} />
+      <Arrow from={[134, 62]} to={[196, 62]} label="작은 질의" tone="warn" />
+      <Box x={196} y={40} w={110} h={44} label="증폭 서버" sub="DNS · NTP" fs={11} />
+      <Arrow from={[306, 62]} to={[368, 62]} label="큰 응답" tone="danger" />
+      <Box x={368} y={40} w={98} h={44} label="피해자" sub="대량 수신" tone="danger" fs={11} />
+      <Box x={14} y={104} w={452} h={28} label="작은 요청이 큰 응답으로 ‘증폭’되어, 위조된 출발지(피해자)에게 쏟아집니다" tone="danger" fs={11} />
+    </Svg>
+  );
+}
+
+function AttemptSuccessArt() {
+  return (
+    <Svg vb="0 0 480 150">
+      <Box x={16} y={53} w={120} h={44} label="시도 발생" sub="로그인·익스플로잇" tone="warn" fs={11} />
+      <Arrow from={[136, 66]} to={[238, 40]} label="실패·차단" tone="ok" />
+      <Box x={238} y={22} w={226} h={38} label="Attempted — 시도(실패)" tone="ok" fs={11} />
+      <Arrow from={[136, 84]} to={[238, 116]} label="성공 응답·세션 성립" tone="danger" />
+      <Box x={238} y={100} w={226} h={38} label="Successful — 성공(침해)" tone="danger" fs={11} />
+    </Svg>
+  );
+}
+
+function MitreArt() {
+  const steps = ['정찰', '침투', '실행', '지속', '이동', '목적'];
+  return (
+    <Svg vb="0 0 480 128">
+      {steps.map((s, i) => {
+        const w = 72, gap = 6, x = 8 + i * (w + gap);
+        return (
+          <g key={i}>
+            <Box x={x} y={48} w={w} h={40} label={s} tone={i === steps.length - 1 ? 'danger' : 'accent'} fs={12} />
+            {i < steps.length - 1 && <Arrow from={[x + w, 68]} to={[x + w + gap, 68]} />}
+          </g>
+        );
+      })}
+      <Box x={8} y={98} w={444} h={24} label="공격은 단계로 이어집니다. 어느 단계의 신호인지 알면 다음을 막을 수 있습니다" fs={11} />
+    </Svg>
+  );
+}
+
+function HuntFlowArt() {
+  return (
+    <Svg vb="0 0 480 138">
+      <Box x={16} y={48} w={120} h={44} label="추이 봉우리" sub="언제" tone="accent" fs={11} />
+      <Arrow from={[136, 70]} to={[182, 70]} />
+      <Box x={182} y={48} w={120} h={44} label="IP 분석" sub="누가" tone="accent" fs={11} />
+      <Box x={348} y={48} w={116} h={44} label="시그니처 분석" sub="무엇을" tone="accent" fs={11} />
+      <Arrow from={[302, 60]} to={[348, 60]} label="시그니처" />
+      <Arrow from={[348, 80]} to={[302, 80]} label="IP" />
+      <Box x={16} y={104} w={448} h={26} label="시각 → IP ↔ 시그니처를 오가며 꼬리를 물고 추적" fs={11} />
+    </Svg>
+  );
+}
+
 const MAP: Record<ArtKey, () => JSX.Element> = {
   'intro-soc': IntroSocArt,
   'intro-terms': IntroTermsArt,
@@ -297,6 +500,20 @@ const MAP: Record<ArtKey, () => JSX.Element> = {
   'ip-profile': IpProfileArt,
   'sig-profile': SigProfileArt,
   'cross': CrossArt,
+  'intro-handshake': HandshakeArt,
+  'intro-eventtypes': EventTypesArt,
+  'intro-layers': LayersArt,
+  'intro-tcpudp': TcpUdpArt,
+  'intro-dns': DnsArt,
+  'intro-perms': PermsArt,
+  'intro-etclass': EtClassArt,
+  'syn-scan': SynScanArt,
+  'proto-donut': ProtoDonutArt,
+  'cmd-injection': CmdInjectionArt,
+  'dos-amp': DosAmpArt,
+  'attempt-success': AttemptSuccessArt,
+  'mitre': MitreArt,
+  'hunt-flow': HuntFlowArt,
 };
 
 export const ART_CAPTION: Record<ArtKey, string> = {
@@ -316,6 +533,20 @@ export const ART_CAPTION: Record<ArtKey, string> = {
   'ip-profile': '주소 하나의 공격 시도·피격·위험도·유발 규칙·포트·시간선을 한 장에.',
   'sig-profile': '규칙 하나가 어디서·어디를·언제 얼마나 잡았는지 한 장에.',
   'cross': '규칙 ↔ IP를 클릭으로 오가며 꼬리에 꼬리를 무는 추적.',
+  'intro-handshake': '모든 통신은 출발지 → 목적지. TCP는 SYN·SYN-ACK·ACK 3단계 인사로 연결을 엽니다.',
+  'intro-eventtypes': 'alert·anomaly·flow·honeypot — 유형마다 담는 정보가 다릅니다.',
+  'intro-layers': 'L3(IP)·L4(포트·TCP/UDP)·L7(HTTP·DNS·TLS)로 역할이 나뉩니다.',
+  'intro-tcpudp': 'TCP는 확인·순서를 보장하는 등기우편, UDP는 빠른 엽서입니다.',
+  'intro-dns': '도메인 이름을 DNS가 IP로 바꿔 줍니다. 낯선 질의는 감염 단서가 됩니다.',
+  'intro-perms': '일반(개요)·관계자(로그·분석)·관리자(원문) 순으로 열람 범위가 넓어집니다.',
+  'intro-etclass': '시그니처 이름 앞 분류(ET SCAN·DROP·MALWARE·POLICY·INFO)로 성격을 가늠합니다.',
+  'syn-scan': 'SYN만 보내 열림만 확인하고 연결은 맺지 않는 SYN 스텔스 스캔.',
+  'proto-donut': '프로토콜 비중 도넛. unknown·failed는 공격이 아니라 판별 상태입니다(비율은 예시).',
+  'cmd-injection': 'SQL 주입이 DB를 노린다면, 명령 주입은 서버 운영체제를 직접 노립니다.',
+  'dos-amp': '작은 요청이 큰 응답으로 증폭되어, 위조된 출발지(피해자)에게 쏟아집니다.',
+  'attempt-success': '응답으로 시도(Attempted)와 성공(Successful)을 가릅니다.',
+  'mitre': '공격을 정찰·침투·실행·지속·이동·목적 단계로 나눠 봅니다.',
+  'hunt-flow': '추이에서 IP·시그니처로 오가며 꼬리를 물고 추적합니다.',
 };
 
 export function LearnArt({ art, className }: { art: ArtKey; className?: string }) {

@@ -14,7 +14,10 @@ export type ArtKey =
   | 'stun-intro' | 'stun-flow' | 'stun-decision'
   | 'ssh-scan' | 'sqli' | 'trojan' | 'cleartext'
   | 'ov-layout' | 'ov-severity' | 'ev-flow' | 'ev-export'
-  | 'ip-profile' | 'sig-profile' | 'cross';
+  | 'ip-profile' | 'sig-profile' | 'cross'
+  | 'intro-handshake' | 'intro-eventtypes' | 'intro-layers' | 'intro-tcpudp' | 'intro-dns' | 'intro-perms' | 'intro-etclass'
+  | 'syn-scan' | 'proto-donut'
+  | 'cmd-injection' | 'dos-amp' | 'attempt-success' | 'mitre' | 'hunt-flow';
 
 export type Group = '시작하기' | '대시보드 화면' | '탐지 시그니처';
 export const GROUPS: Group[] = ['시작하기', '대시보드 화면', '탐지 시그니처'];
