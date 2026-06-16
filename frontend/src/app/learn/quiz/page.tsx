@@ -109,7 +109,7 @@ export default function QuizPage() {
         {done && (
           <div className="mt-3">
             <div className="rounded-lg border-l-4 px-3.5 py-2.5 text-sm" style={{ borderColor: sel === q.ans ? '#16a34a' : '#dc2626', background: (sel === q.ans ? '#16a34a' : '#dc2626') + '12' }}>
-              <span className="font-semibold" style={{ color: sel === q.ans ? '#16a34a' : '#dc2626' }}>{sel === q.ans ? '정답!' : '아쉬워요'}</span>{' '}
+              <span className="font-semibold" style={{ color: sel === q.ans ? '#16a34a' : '#dc2626' }}>{sel === q.ans ? '정답' : '오답'}</span>{' '}
               <span className="text-slate-700 dark:text-slate-200 leading-6">{q.detail ?? q.exp}</span>
             </div>
             {/* 오답노트 / 메모 (자동 저장) */}
@@ -119,7 +119,7 @@ export default function QuizPage() {
                 value={notes[qKey(q.q)] ?? ''}
                 onChange={(e) => { const v = e.target.value; const k = qKey(q.q); setNotes((p) => ({ ...p, [k]: v })); saveNote(k, v); }}
                 rows={2}
-                placeholder="헷갈린 점·기억할 포인트를 적어두면 자동 저장돼요"
+                placeholder="헷갈린 점·기억할 포인트를 적어 두면 자동 저장됩니다"
                 className="w-full text-sm px-3 py-2 rounded-lg bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-accent-600 outline-none resize-y text-slate-700 dark:text-slate-200 placeholder:text-slate-400" />
             </div>
             <div className="mt-2 flex items-center gap-4 flex-wrap">
@@ -139,7 +139,7 @@ export default function QuizPage() {
   };
 
   const modeBtn = (m: 'practice' | 'exam', icon: ReactNode, label: string) => (
-    <button onClick={() => setMode(m)}
+    <button onClick={() => setMode(m)} aria-pressed={mode === m}
       className={`flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium ${mode === m ? 'bg-accent-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}>
       {icon}{label}
     </button>
@@ -246,10 +246,10 @@ export default function QuizPage() {
                         <div className="text-sm">
                           {examPassed ? (
                             <><b className="text-green-700 dark:text-green-400">통과! ({Math.round(examRatio * 100)}%)</b>{' '}
-                              <span className="text-slate-600 dark:text-slate-300">{nextStage ? `‘${nextStage}’ 단계가 열렸습니다.` : '모든 단계를 마쳤어요. 수고했어요!'}</span></>
+                              <span className="text-slate-600 dark:text-slate-300">{nextStage ? `‘${nextStage}’ 단계가 열렸습니다.` : '모든 단계를 통과했습니다.'}</span></>
                           ) : (
                             <><b className="text-red-600 dark:text-red-400">{Math.round(examRatio * 100)}% — {PASS_PCT}% 필요</b>{' '}
-                              <span className="text-slate-600 dark:text-slate-300">틀린 문제를 복습하고 다시 시험에 도전하세요.</span></>
+                              <span className="text-slate-600 dark:text-slate-300">틀린 문제를 복습한 뒤 다시 응시할 수 있습니다.</span></>
                           )}
                         </div>
                         {examPassed && nextStage && (

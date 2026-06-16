@@ -33,6 +33,7 @@ public class DataSourceConfig {
         ds.setReadOnly(true);            // 데이터 DB는 절대 변경하지 않음
         ds.setMaximumPoolSize(5);
         ds.setConnectionTimeout(10000);
+        ds.setConnectionInitSql("SET statement_timeout = 15000"); // 무거운 쿼리(풀스캔 등) 15초로 강제 종료
         ds.setPoolName("suricata-ro");
         return ds;
     }
@@ -49,6 +50,7 @@ public class DataSourceConfig {
         ds.setPassword(password);
         ds.setMaximumPoolSize(3);
         ds.setConnectionTimeout(10000);
+        ds.setConnectionInitSql("SET statement_timeout = 15000");
         ds.setPoolName("dashboard-app-rw");
         ds.setInitializationFailTimeout(-1); // 시작 시 app DB가 잠깐 없어도 부팅은 되게(첫 사용 시 연결)
         return ds;

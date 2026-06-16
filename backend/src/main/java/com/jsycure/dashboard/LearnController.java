@@ -1,5 +1,6 @@
 package com.jsycure.dashboard;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +15,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/learn")
 public class LearnController {
+
+    private static final int MAX_PROGRESS_CHARS = 64 * 1024; // 진도 JSON 상한(과대 본문 차단)
 
     private final UserService users;
     private final LearnProgressRepository repo;
@@ -31,19 +34,40 @@ public class LearnController {
                 .id();
     }
 
-    /** 내 학습 진도 불러오기. 저장된 것이 없으면 빈 객체. */
+    /** 내 학습 진도 불러오기. 저장된 것이 없거나 손상됐으면 빈 객체(500 대신 안전 복구). */
     @GetMapping("/progress")
-    public Map<String, Object> get(Authentication auth) throws Exception {
+    public Map<String, Object> get(Authentication auth) {
         String json = repo.findByUserId(userId(auth)).orElse("{}");
-        @SuppressWarnings("unchecked")
-        Map<String, Object> m = om.readValue(json, Map.class);
-        return m;
+        try {
+            JsonNode node = om.readTree(json);
+            if (node.isObject()) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> m = om.convertValue(node, Map.class);
+                return m;
+            }
+        } catch (Exception ignored) {
+            // 손상된 값 → 빈 객체로 복구
+        }
+        return Map.of();
     }
 
-    /** 내 학습 진도 저장(클라이언트가 병합한 전체 스냅샷을 통째로 보관). */
-    @PutMapping("/progress")
-    public Map<String, Object> put(Authentication auth, @RequestBody(required = false) Map<String, Object> body) throws Exception {
-        repo.upsert(userId(auth), om.writeValueAsString(body == null ? Map.of() : body));
+    /** 내 학습 진도 저장. 64KB 이하의 JSON 객체만 허용(과대 본문·형식 오류 차단). */
+    @PutMapping(value = "/progress", consumes = "application/json")
+    public Map<String, Object> put(Authentication auth, @RequestBody(required = false) String raw) {
+        String body = (raw == null || raw.isBlank()) ? "{}" : raw;
+        if (body.length() > MAX_PROGRESS_CHARS) {
+            throw new IllegalArgumentException("진도 데이터가 너무 큽니다.");
+        }
+        JsonNode node;
+        try {
+            node = om.readTree(body);
+        } catch (Exception e) {
+            throw new IllegalArgumentException("진도 데이터 형식이 올바르지 않습니다.");
+        }
+        if (!node.isObject()) {
+            throw new IllegalArgumentException("진도 데이터 형식이 올바르지 않습니다(JSON 객체 필요).");
+        }
+        repo.upsert(userId(auth), node.toString());
         return Map.of("ok", true);
     }
 }

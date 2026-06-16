@@ -63,7 +63,7 @@ export default function LearnPage() {
 
   // 본문을 끝까지 스크롤하면(끝 지점이 화면에 ~1초 머무르면) 자동으로 '완료' 처리. 이미 완료면 동작 안 함.
   useEffect(() => {
-    if (!ready || !itemUnlocked || done.includes(item.id)) return;
+    if (!ready || mode !== 'full' || !itemUnlocked || done.includes(item.id)) return;
     const el = endRef.current;
     if (!el) return;
     let t: ReturnType<typeof setTimeout> | null = null;
@@ -94,7 +94,7 @@ export default function LearnPage() {
   const stageTotal = (stage: Stage) => LEARN_ITEMS.filter((s) => s.level === stage).length;
 
   const toggleBtn = (m: 'full' | 'summary', label: string) => (
-    <button onClick={() => setMode(m)}
+    <button onClick={() => setMode(m)} aria-pressed={mode === m}
       className={`px-3 py-1.5 ${mode === m ? 'bg-accent-600 text-white' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-white/10'}`}>
       {label}
     </button>
@@ -210,10 +210,15 @@ export default function LearnPage() {
         </div>
 
         {/* 우: 상세 */}
-        {!itemUnlocked ? (
+        {!ready ? (
+          <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-10 grid place-items-center">
+            <div className="text-sm text-slate-400">불러오는 중</div>
+          </div>
+        ) : !itemUnlocked ? (
           <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-10 grid place-items-center text-center">
             <Lock size={36} className="text-slate-300 dark:text-white/20 mb-3" />
-            <div className="text-sm text-slate-500">이 항목은 아직 잠겨 있습니다. 이전 단계 퀴즈를 통과하세요.</div>
+            <div className="text-sm text-slate-500">이 항목은 ‘{item.level}’ 단계입니다. ‘{STAGES[STAGES.indexOf(item.level) - 1]}’ 단계 퀴즈를 80% 이상 통과하면 열립니다.</div>
+            <Link href="/learn/quiz" className="inline-flex items-center gap-1 text-sm mt-3 text-accent-600 dark:text-accent-500 hover:underline">퀴즈 풀러 가기 <ChevronRight size={14} /></Link>
           </div>
         ) : (
         <div className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-5">
@@ -326,7 +331,7 @@ export default function LearnPage() {
 
           {/* 단계 퀴즈로 유도 */}
           <div className="mt-6 pt-4 border-t border-slate-100 dark:border-white/5 flex items-center justify-between gap-3 flex-wrap">
-            <span className="text-xs text-slate-500">이 단계를 다 봤다면, 퀴즈 80%로 다음 단계를 열어 보세요.</span>
+            <span className="text-xs text-slate-500">이 단계를 다 봤다면 퀴즈에서 80% 이상으로 다음 단계를 열 수 있습니다.</span>
             <Link href="/learn/quiz" className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-accent-600 text-white font-medium hover:bg-accent-700">
               {item.level} 퀴즈 풀기 <ChevronRight size={14} />
             </Link>

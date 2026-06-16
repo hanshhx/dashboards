@@ -18,6 +18,15 @@ async function proxy(req: NextRequest, pathParts: string[]) {
   const ct = req.headers.get('content-type');
   if (ct) headers['content-type'] = ct;
 
+  // 과대 본문 차단(프록시·백엔드 메모리 보호). 정상 요청은 수 KB 수준.
+  const cl = Number(req.headers.get('content-length') || 0);
+  if (cl > 512 * 1024) {
+    return new Response(
+      JSON.stringify({ error: 'payload_too_large', message: '요청 본문이 너무 큽니다.' }),
+      { status: 413, headers: { 'content-type': 'application/json' } },
+    );
+  }
+
   const method = req.method;
   const hasBody = method !== 'GET' && method !== 'HEAD' && method !== 'DELETE';
   const body = hasBody ? await req.text() : undefined;

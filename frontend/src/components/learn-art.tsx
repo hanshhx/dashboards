@@ -57,7 +57,7 @@ function Arrow({
 function Svg({ vb, children }: { vb: string; children: ReactNode }) {
   return (
     <svg viewBox={vb} width="100%" xmlns="http://www.w3.org/2000/svg"
-      style={{ maxHeight: 240, display: 'block' }} role="img">
+      style={{ maxHeight: 240, display: 'block' }} aria-hidden="true">
       {children}
     </svg>
   );
@@ -68,7 +68,7 @@ function IntroArt() {
     <Svg vb="0 0 480 150">
       <Box x={16} y={48} w={120} h={50} label="화상회의·통화" sub="Google Meet 등" />
       <Arrow from={[136, 73]} to={[196, 73]} />
-      <Box x={196} y={48} w={120} h={50} label="STUN 트래픽" sub="3478·5349 포트" tone="accent" />
+      <Box x={196} y={48} w={120} h={50} label="STUN 트래픽" sub="3478 (TLS는 5349)" tone="accent" />
       <Arrow from={[316, 73]} to={[372, 73]} />
       <Box x={372} y={48} w={96} h={50} label="보안 센서" sub="Suricata 기록" />
       <Box x={140} y={112} w={200} h={28} label="‘ET INFO’ = 참고용 (공격 아님)" tone="ok" fs={11} />
@@ -300,7 +300,7 @@ function EventTypesArt() {
       <Box x={16} y={18} w={224} h={46} label="alert — 규칙에 걸린 경보" sub="시그니처·위험도 있음" tone="danger" fs={11} />
       <Box x={248} y={18} w={216} h={46} label="anomaly — 형식 이상" sub="프로토콜이 비정상" tone="warn" fs={11} />
       <Box x={16} y={72} w={224} h={46} label="flow — 연결 요약" sub="주고받은 양" tone="accent" fs={11} />
-      <Box x={248} y={72} w={216} h={46} label="honeypot — 미끼 상호작용" sub="가장 많음 · 약 54%" tone="ok" fs={11} />
+      <Box x={248} y={72} w={216} h={46} label="honeypot — 미끼 상호작용" sub="가장 많음" tone="ok" fs={11} />
       <Box x={16} y={126} w={448} h={26} label="유형마다 담는 정보가 다릅니다. honeypot엔 시그니처·위험도가 없습니다" fs={11} />
     </Svg>
   );
@@ -552,7 +552,7 @@ export const ART_CAPTION: Record<ArtKey, string> = {
 export function LearnArt({ art, className }: { art: ArtKey; className?: string }) {
   const C = MAP[art];
   return (
-    <div className={className ?? 'text-slate-500 dark:text-slate-400'}>
+    <div className={className ?? 'text-slate-500 dark:text-slate-400'} role="img" aria-label={ART_CAPTION[art]}>
       <C />
     </div>
   );

@@ -108,7 +108,7 @@ export default function ReviewPage() {
               </div>
               {done && (
                 <div className="mt-3 text-sm">
-                  <span className="font-medium" style={{ color: correct ? '#16a34a' : '#dc2626' }}>{correct ? '정답!' : '아쉬워요'}</span>{' '}
+                  <span className="font-medium" style={{ color: correct ? '#16a34a' : '#dc2626' }}>{correct ? '정답' : '오답'}</span>{' '}
                   <span className="text-slate-600 dark:text-slate-300">{q.detail ?? q.exp}</span>
                   {q.relatedId && (
                     <div className="mt-2">
