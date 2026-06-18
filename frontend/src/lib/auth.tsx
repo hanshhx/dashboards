@@ -10,7 +10,24 @@ const ROLE_RANK: Record<Role, number> = { GENERAL: 1, STAFF: 2, ADMIN: 3 };
 export const hasRole = (user: User | null, min: Role) => !!user && ROLE_RANK[user.role] >= ROLE_RANK[min];
 
 const TOKEN_KEY = 'sv_token';
+const USER_KEY = 'sv_user';
 export const getToken = () => (typeof window !== 'undefined' ? localStorage.getItem(TOKEN_KEY) : null);
+
+// 마지막 로그인 사용자 캐시 — 재방문 시 서버 응답을 기다리지 않고 즉시 렌더(곧 서버 검증으로 보정).
+function readUser(): User | null {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    return raw ? (JSON.parse(raw) as User) : null;
+  } catch {
+    return null;
+  }
+}
+function writeUser(u: User | null) {
+  try {
+    if (u) localStorage.setItem(USER_KEY, JSON.stringify(u));
+    else localStorage.removeItem(USER_KEY);
+  } catch { /* ignore */ }
+}
 
 type AuthCtx = {
   user: User | null;
@@ -45,14 +62,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
       return;
     }
+    // 1) 캐시된 사용자가 있으면 즉시 렌더(들어가자마자 화면 표시) — 서버 응답을 기다리지 않음
+    const cached = readUser();
+    if (cached) {
+      setUser(cached);
+      setLoading(false);
+    }
+    // 2) 백그라운드로 토큰 검증·사용자 정보 갱신
     (async () => {
       try {
         const res = await fetch('/api/auth/me', { headers: { Authorization: `Bearer ${t}` } });
         if (!res.ok) throw new Error();
         const d = await res.json();
-        setUser({ username: d.username, role: d.role });
+        const u: User = { username: d.username, role: d.role };
+        setUser(u);
+        writeUser(u);
       } catch {
         localStorage.removeItem(TOKEN_KEY);
+        writeUser(null);
         setUser(null);
       } finally {
         setLoading(false);
@@ -69,7 +96,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!res.ok) throw new Error(await readError(res, '로그인에 실패했습니다.'));
     const d = await res.json();
     localStorage.setItem(TOKEN_KEY, d.token);
-    setUser({ username: d.username, role: d.role });
+    const me: User = { username: d.username, role: d.role };
+    writeUser(me);
+    setUser(me);
   }
 
   async function signup(u: string, p: string) {
@@ -83,6 +112,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   function logout() {
     localStorage.removeItem(TOKEN_KEY);
+    writeUser(null);
     setUser(null);
   }
 
