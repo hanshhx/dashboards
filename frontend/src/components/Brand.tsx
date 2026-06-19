@@ -1,19 +1,13 @@
-import { ShieldCheck } from 'lucide-react';
-
-// 로고 + 제품명. 사이드바/로그인/가입에서 공유(중복 제거).
-// 이름을 바꾸려면 아래 'Packet Board' 한 곳만 수정.
-export function Brand({ size = 'md', subtitle }: { size?: 'md' | 'lg'; subtitle?: string }) {
-  const box = size === 'lg' ? 'w-10 h-10 rounded-xl' : 'w-8 h-8 rounded-lg';
-  const icon = size === 'lg' ? 22 : 18;
+// 로고 — 사이드바/헤더·가입 화면에서 공유. 실제 SVG 로고(public/logo-packet-board.svg) 사용.
+// 로고 색이 고정(짙은 네이비)이라 다크 배경에서 안 보이는 것을 막기 위해 다크모드에선 흰색으로 표시.
+export function Brand({ size = 'md', className = '' }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
+  const h = size === 'lg' ? 'h-9' : size === 'sm' ? 'h-6' : 'h-7';
   return (
-    <div className="flex items-center gap-2">
-      <div className={`${box} grid place-items-center bg-accent-600 text-white`}>
-        <ShieldCheck size={icon} />
-      </div>
-      <div>
-        <div className={`font-bold leading-tight ${size === 'lg' ? 'text-xl' : ''}`}>Packet Board</div>
-        {subtitle && <div className="text-[11px] text-slate-400">{subtitle}</div>}
-      </div>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src="/logo-packet-board.svg"
+      alt="Packet Board — 네트워크 보안 로그"
+      className={`${h} w-auto dark:brightness-0 dark:invert ${className}`}
+    />
   );
 }

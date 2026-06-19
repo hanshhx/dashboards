@@ -4,7 +4,6 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { LogIn } from 'lucide-react';
-import { Brand } from '@/components/Brand';
 import { Spinner, fieldCls } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 
@@ -38,7 +37,8 @@ export default function LoginPage() {
     <div className="min-h-screen grid place-items-center p-4 bg-slate-50 dark:bg-[#0b0c14]">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-6">
-          <Brand size="lg" />
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/logo-login.svg" alt="Packet Board" className="h-8 w-auto dark:brightness-0 dark:invert" />
         </div>
 
         <form onSubmit={submit} className="rounded-xl bg-white dark:bg-[#15161f] border border-slate-200 dark:border-white/10 p-6 space-y-4 shadow-xl">
