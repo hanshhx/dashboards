@@ -17,6 +17,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  *  - 일반(GENERAL): 개요 요약 (overview·timeseries·protocols·alerts), /api/auth/me
  *  - 관계자(STAFF): + 로그탐색(/api/events**), 시그니처, Top Talkers
  *  - 관리자(ADMIN): + payload 상세(/api/events/{id}/payload), 회원관리(/api/admin/**)
+ *  - 게스트(GUEST): 관계자 수준 조회(events·analysis·stats)만 허용, 관리/payload는 차단.
+ *                   JwtAuthFilter가 매 요청 생존(활성·미만료)을 확인해 즉시 차단·7일 만료를 강제.
  * 토큰은 JWT(무상태). API 키 필터(ApiKeyFilter)는 프록시-백엔드 채널 보호로 별도 동작.
  */
 @Configuration
@@ -36,13 +38,13 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/health").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup").permitAll()
+                .requestMatchers(HttpMethod.POST, "/api/auth/login", "/api/auth/signup", "/api/auth/guest").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/events/*/payload").hasRole("ADMIN")
-                .requestMatchers("/api/events/**").hasAnyRole("STAFF", "ADMIN")
+                .requestMatchers("/api/events/**").hasAnyRole("STAFF", "ADMIN", "GUEST")
                 .requestMatchers("/api/stats/signatures", "/api/stats/top-talkers",
-                                 "/api/stats/categories", "/api/stats/top-ports").hasAnyRole("STAFF", "ADMIN")
-                .requestMatchers("/api/analysis/**").hasAnyRole("STAFF", "ADMIN")
+                                 "/api/stats/categories", "/api/stats/top-ports").hasAnyRole("STAFF", "ADMIN", "GUEST")
+                .requestMatchers("/api/analysis/**").hasAnyRole("STAFF", "ADMIN", "GUEST")
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e
                 .authenticationEntryPoint((req, res, ex) -> {

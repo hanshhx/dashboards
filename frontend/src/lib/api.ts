@@ -156,9 +156,10 @@ export const useEventPayload = (id: number | null) =>
 export type AdminUser = {
   id: number;
   username: string;
-  role: 'GENERAL' | 'STAFF' | 'ADMIN';
+  role: 'GENERAL' | 'STAFF' | 'ADMIN' | 'GUEST';
   enabled: boolean;
   createdAt: string;
+  expiresAt: string | null;
 };
 export const useUsers = (enabled = true) =>
   useQuery({ queryKey: ['admin-users'], enabled, queryFn: () => get<AdminUser[]>('/admin/users') });

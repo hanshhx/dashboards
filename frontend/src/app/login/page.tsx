@@ -8,7 +8,7 @@ import { Spinner, fieldCls } from '@/components/ui';
 import { useAuth } from '@/lib/auth';
 
 export default function LoginPage() {
-  const { login, user, loading } = useAuth();
+  const { login, loginGuest, user, loading } = useAuth();
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +28,20 @@ export default function LoginPage() {
       router.replace('/');
     } catch (e) {
       setErr(e instanceof Error ? e.message : '로그인 실패');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // 게스트(시연) 모드 진입 — 비번 없이, 조회만 가능, 7일 후 만료.
+  async function enterGuest() {
+    setErr('');
+    setBusy(true);
+    try {
+      await loginGuest();
+      router.replace('/');
+    } catch (e) {
+      setErr(e instanceof Error ? e.message : '게스트 진입에 실패했습니다.');
     } finally {
       setBusy(false);
     }
@@ -67,6 +81,13 @@ export default function LoginPage() {
             계정이 없으신가요? <Link href="/signup" className="text-accent-600 dark:text-accent-500 font-medium hover:underline">회원가입</Link>
           </div>
         </form>
+
+        <div className="mt-3 text-center">
+          <button type="button" onClick={enterGuest} disabled={busy}
+            className="text-sm text-slate-500 hover:text-accent-600 dark:hover:text-accent-500 underline underline-offset-4 disabled:opacity-50">
+            게스트로 둘러보기 (체험 · 7일)
+          </button>
+        </div>
       </div>
     </div>
   );

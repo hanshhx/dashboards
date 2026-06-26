@@ -33,6 +33,14 @@ public class AuthController {
         return new AuthResp(jwt.generate(u.username(), u.role()), u.username(), u.role());
     }
 
+    /** 게스트(시연) 로그인 — 비번 없이, 관계자 수준 조회 권한, 7일 만료. 차단/만료 시 401. */
+    @PostMapping("/guest")
+    public AuthResp guest() {
+        AppUser g = users.guestLogin();
+        audit.record(g.username(), "GUEST_LOGIN", "role=" + g.role());
+        return new AuthResp(jwt.generate(g.username(), g.role()), g.username(), g.role());
+    }
+
     /** 본인 비밀번호 변경 (프로필) */
     @PostMapping("/password")
     public Map<String, Object> changePassword(Authentication auth, @RequestBody ChangePasswordReq req) {

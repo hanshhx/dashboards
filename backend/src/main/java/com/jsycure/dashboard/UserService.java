@@ -5,15 +5,18 @@ import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 
 /** 회원가입/로그인 검증 + 회원관리. 비밀번호는 BCrypt 해시 저장. */
 @Service
 public class UserService {
 
     static final Set<String> ROLES = Set.of("GENERAL", "STAFF", "ADMIN");
+    static final String GUEST_USERNAME = "guest"; // 공용 게스트(시연) 계정 아이디
 
     private final UserRepository repo;
     private final PasswordEncoder encoder;
@@ -62,6 +65,45 @@ public class UserService {
 
     public void delete(long id) {
         repo.delete(id);
+    }
+
+    // ── 게스트(시연) 모드 ─────────────────────────────────────────────
+    /** 시작 시 공용 게스트 계정 보장(없으면 생성). GUEST 등급·활성·7일 만료. */
+    public void ensureGuestAccount() {
+        if (repo.findByUsername(GUEST_USERNAME).isEmpty()) {
+            // 비번으로 직접 로그인하지 않지만 컬럼이 NOT NULL이라 임의 해시를 저장(직접 로그인 불가).
+            repo.insertGuest(GUEST_USERNAME, encoder.encode(UUID.randomUUID().toString()));
+        }
+    }
+
+    /** 게스트 로그인 — 활성·미만료일 때만 게스트 계정 반환. */
+    public AppUser guestLogin() {
+        AppUser g = repo.findByUsername(GUEST_USERNAME)
+                .orElseThrow(() -> new DisabledException("게스트 모드를 사용할 수 없습니다."));
+        if (!isActive(g)) {
+            throw new DisabledException("게스트 모드가 종료되었습니다. 회원가입 후 일반 모드로 이용하세요.");
+        }
+        return g;
+    }
+
+    /** 계정 활성 여부 — enabled + (만료 없음 또는 아직 안 지남). 게스트 만료/차단 판정에 사용. */
+    public boolean isActive(AppUser u) {
+        if (u == null || !u.enabled()) return false;
+        if (u.expiresAt() == null) return true;
+        try { return Instant.now().isBefore(Instant.parse(u.expiresAt())); }
+        catch (Exception e) { return true; }
+    }
+
+    /** 게스트 즉시 차단(비활성화) — 다음 요청부터 막힘. */
+    public void blockGuest() {
+        repo.findByUsername(GUEST_USERNAME).ifPresent(g -> repo.setEnabled(g.id(), false));
+    }
+
+    /** 게스트 재활성 + 만료 7일 연장. */
+    public void renewGuest() {
+        AppUser g = repo.findByUsername(GUEST_USERNAME)
+                .orElseThrow(() -> new IllegalArgumentException("게스트 계정이 없습니다."));
+        repo.renewGuest(g.id());
     }
 
     /** 본인 비밀번호 변경 (현재 비번 확인 후) */

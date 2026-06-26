@@ -2,11 +2,12 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-export type Role = 'GENERAL' | 'STAFF' | 'ADMIN';
+export type Role = 'GENERAL' | 'STAFF' | 'ADMIN' | 'GUEST';
 export type User = { username: string; role: Role };
 
-export const ROLE_LABEL: Record<Role, string> = { GENERAL: '일반', STAFF: '관계자', ADMIN: '관리자' };
-const ROLE_RANK: Record<Role, number> = { GENERAL: 1, STAFF: 2, ADMIN: 3 };
+export const ROLE_LABEL: Record<Role, string> = { GENERAL: '일반', STAFF: '관계자', ADMIN: '관리자', GUEST: '게스트' };
+// GUEST는 메뉴/권한 게이트상 관계자(STAFF)와 같은 등급 — 조회는 가능, 관리자(ADMIN) 기능만 차단.
+const ROLE_RANK: Record<Role, number> = { GENERAL: 1, STAFF: 2, ADMIN: 3, GUEST: 2 };
 export const hasRole = (user: User | null, min: Role) => !!user && ROLE_RANK[user.role] >= ROLE_RANK[min];
 
 const TOKEN_KEY = 'sv_token';
@@ -33,6 +34,7 @@ type AuthCtx = {
   user: User | null;
   loading: boolean;
   login: (u: string, p: string) => Promise<void>;
+  loginGuest: () => Promise<void>;
   signup: (u: string, p: string) => Promise<void>;
   logout: () => void;
 };
@@ -101,6 +103,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(me);
   }
 
+  // 게스트(시연) 모드 — 비번 없이 진입. 서버가 차단/만료 시 다음 요청부터 막힘.
+  async function loginGuest() {
+    const res = await fetch('/api/auth/guest', { method: 'POST' });
+    if (!res.ok) throw new Error(await readError(res, '게스트 모드를 사용할 수 없습니다.'));
+    const d = await res.json();
+    localStorage.setItem(TOKEN_KEY, d.token);
+    const me: User = { username: d.username, role: d.role };
+    writeUser(me);
+    setUser(me);
+  }
+
   async function signup(u: string, p: string) {
     const res = await fetch('/api/auth/signup', {
       method: 'POST',
@@ -116,5 +129,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }
 
-  return <Ctx.Provider value={{ user, loading, login, signup, logout }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ user, loading, login, loginGuest, signup, logout }}>{children}</Ctx.Provider>;
 }

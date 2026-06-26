@@ -19,15 +19,17 @@ public class UserRepository {
     }
 
     private static final RowMapper<AppUser> MAP = (rs, i) -> {
-        // created_at(timestamptz) → 절대시각을 ISO-8601(UTC, …Z)로. 프론트가 KST로 정확히 표시.
+        // created_at/expires_at(timestamptz) → 절대시각을 ISO-8601(UTC, …Z)로. 프론트가 KST로 정확히 표시.
         var createdAt = rs.getTimestamp("created_at");
+        var expiresAt = rs.getTimestamp("expires_at");
         return new AppUser(
                 rs.getLong("id"),
                 rs.getString("username"),
                 rs.getString("password"),
                 rs.getString("role"),
                 rs.getBoolean("enabled"),
-                createdAt == null ? null : createdAt.toInstant().toString());
+                createdAt == null ? null : createdAt.toInstant().toString(),
+                expiresAt == null ? null : expiresAt.toInstant().toString());
     };
 
     public Optional<AppUser> findByUsername(String username) {
@@ -60,5 +62,26 @@ public class UserRepository {
 
     public int delete(long id) {
         return jdbc.update("DELETE FROM app_user WHERE id = ?", id);
+    }
+
+    // ── 게스트(시연) 계정용 ──
+    /** 공용 게스트 계정 생성 — GUEST 등급·활성·7일 만료. */
+    public long insertGuest(String username, String passwordHash) {
+        Long id = jdbc.queryForObject(
+                "INSERT INTO app_user(username, password, role, enabled, expires_at) " +
+                        "VALUES (?, ?, 'GUEST', true, now() + interval '7 days') RETURNING id",
+                Long.class, username, passwordHash);
+        return id == null ? -1 : id;
+    }
+
+    /** 즉시 차단/재활성 (enabled 토글). */
+    public int setEnabled(long id, boolean enabled) {
+        return jdbc.update("UPDATE app_user SET enabled = ? WHERE id = ?", enabled, id);
+    }
+
+    /** 게스트 재활성 + 만료 7일 연장. */
+    public int renewGuest(long id) {
+        return jdbc.update(
+                "UPDATE app_user SET enabled = true, expires_at = now() + interval '7 days' WHERE id = ?", id);
     }
 }

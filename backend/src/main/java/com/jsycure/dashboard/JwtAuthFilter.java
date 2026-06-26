@@ -19,9 +19,11 @@ import java.util.List;
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtService jwt;
+    private final UserRepository users; // GUEST 토큰의 실시간 생존(활성·미만료) 확인용
 
-    public JwtAuthFilter(JwtService jwt) {
+    public JwtAuthFilter(JwtService jwt, UserRepository users) {
         this.jwt = jwt;
+        this.users = users;
     }
 
     @Override
@@ -33,7 +35,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                 Claims c = jwt.parse(auth.substring(7)).getPayload();
                 String username = c.getSubject();
                 String role = c.get("role", String.class);
-                if (username != null && role != null) {
+                // GUEST(시연) 토큰은 매 요청마다 계정 생존 확인 → 관리자가 차단했거나 7일 만료면 즉시 인증 거부.
+                if (username != null && role != null && !guestRevoked(username, role)) {
                     var token = new UsernamePasswordAuthenticationToken(
                             username, null, List.of(new SimpleGrantedAuthority("ROLE_" + role)));
                     SecurityContextHolder.getContext().setAuthentication(token);
@@ -43,5 +46,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             }
         }
         chain.doFilter(req, res);
+    }
+
+    /** GUEST 토큰만 DB로 생존 확인 — 비활성(차단)이거나 만료면 true(인증 거부). 일반 사용자는 항상 false(기존대로 빠름). */
+    private boolean guestRevoked(String username, String role) {
+        if (!"GUEST".equals(role)) return false;
+        return users.findByUsername(username)
+                .filter(u -> u.enabled())
+                .filter(u -> u.expiresAt() == null || beforeNow(u.expiresAt()))
+                .isEmpty();
+    }
+
+    private boolean beforeNow(String iso) {
+        try { return java.time.Instant.now().isBefore(java.time.Instant.parse(iso)); }
+        catch (Exception e) { return true; }
     }
 }

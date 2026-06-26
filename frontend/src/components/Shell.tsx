@@ -115,6 +115,11 @@ export function Shell({
         </header>
 
         <main className="flex-1 p-4 md:p-6">
+          {user.role === 'GUEST' && (
+            <div className="mb-4 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-400 px-4 py-2.5 text-sm">
+              게스트(체험) 모드입니다 — 조회만 가능하고 관리 기능은 제한됩니다. 7일 후 자동 만료됩니다.
+            </div>
+          )}
           {denied ? (
             <div className="grid place-items-center py-24 text-center">
               <Lock size={40} className="text-slate-300 dark:text-white/20 mb-3" />

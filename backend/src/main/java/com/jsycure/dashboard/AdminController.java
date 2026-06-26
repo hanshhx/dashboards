@@ -22,7 +22,7 @@ public class AdminController {
     @GetMapping("/users")
     public List<UserRow> list() {
         return users.all().stream()
-                .map(u -> new UserRow(u.id(), u.username(), u.role(), u.enabled(), u.createdAt()))
+                .map(u -> new UserRow(u.id(), u.username(), u.role(), u.enabled(), u.createdAt(), u.expiresAt()))
                 .toList();
     }
 
@@ -47,6 +47,22 @@ public class AdminController {
         users.findByUsername(auth.getName())
              .filter(u -> u.id() == id)
              .ifPresent(u -> { throw new IllegalArgumentException("본인 계정에는 이 작업을 할 수 없습니다."); });
+    }
+
+    /** 게스트(시연) 즉시 차단 — 이상 징후 시. 다음 요청부터 막힘. */
+    @PostMapping("/guest/block")
+    public Map<String, Object> blockGuest(Authentication auth) {
+        users.blockGuest();
+        audit.record(auth.getName(), "GUEST_BLOCK", "guest disabled");
+        return Map.of("ok", true);
+    }
+
+    /** 게스트 재활성 + 만료 7일 연장. */
+    @PostMapping("/guest/renew")
+    public Map<String, Object> renewGuest(Authentication auth) {
+        users.renewGuest();
+        audit.record(auth.getName(), "GUEST_RENEW", "guest re-enabled +7d");
+        return Map.of("ok", true);
     }
 
     /** 감사 로그 조회 */
